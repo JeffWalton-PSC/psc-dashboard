@@ -19,8 +19,8 @@ def write():
         src.pages.components.logo()
         st.write(
             """
-            ## Academic Program Enrollment
-            Select the academic program(s) and term(s) you would like to see.
+            ## Academic Program Enrollment - Gender
+            Select the academic program and term(s) you would like to see.
 """
         )
 
@@ -29,17 +29,17 @@ def write():
 
         df = (
             pd.read_feather(data_file)
-            .sort_values(['yearterm_sort', 'curriculum', 'people_code_id'])
+            .sort_values(['yearterm_sort', 'curriculum', 'gender', 'people_code_id'])
         )
 
         program_list = sorted(df['curriculum'].unique())
-        programs = st.multiselect(
-            'Select academic program(s):',
+        program = st.selectbox(
+            'Select academic program:',
             options=program_list,
-            default=program_list,
+            index=0,
             )
 
-        term_list = df.loc[(df['curriculum'].isin(programs)), :]['current_yearterm'].unique()
+        term_list = df.loc[(df['curriculum']==program), :]['current_yearterm'].unique()
         terms = st.multiselect(
             'Select term(s):',
             options=term_list,
@@ -48,22 +48,22 @@ def write():
         # order terms
         terms = [t for t in term_list if t in terms]
 
-        if programs and terms:
+        if program and terms:
             selected_df = (
-                df.loc[(df['curriculum'].isin(programs)) & (df['current_yearterm'].isin(terms)), 
-                ['current_yearterm', 'yearterm_sort', 'curriculum', 'people_code_id']]
-                .groupby(['yearterm_sort', 'current_yearterm', 'curriculum'])
+                df.loc[(df['curriculum']==program) & (df['current_yearterm'].isin(terms)), 
+                ['current_yearterm', 'yearterm_sort', 'curriculum', 'gender', 'people_code_id']]
+                .groupby(['yearterm_sort', 'current_yearterm', 'curriculum', 'gender'])
                 .count()
                 .reset_index()
                 .rename(columns={'people_code_id': 'count', 'current_yearterm': 'yearterm', 'curriculum': 'program'})
-                .sort_values(['yearterm_sort', 'program'])
+                .sort_values(['yearterm_sort', 'program', 'gender'])
                 .astype({'count': 'UInt16'})
             )
 
             program_enrollment = pd.pivot(
                 selected_df,
                 values='count',
-                index=['program'],
+                index=['program', 'gender'],
                 columns=['yearterm'],
             )[terms]
 
@@ -74,15 +74,26 @@ def write():
             st.download_button(
                 label="Download data as CSV",
                 data=csv,
-                file_name='academic_program_enrollment.csv',
+                file_name='academic_program_enrollment_gender.csv',
                 mime='text/csv',
             )
 
-            c = alt.Chart(selected_df).mark_bar().encode(
+            col1, col2 = st.columns(2)
+
+            c1 = alt.Chart(selected_df).mark_bar().encode(
                 x='yearterm:N',
                 y='sum(count):Q',
-                color='yearterm:N',
+                color='gender:N',
                 column='program:N'
             )
-
-            st.altair_chart(c)
+            with col1:
+                st.altair_chart(c1)
+            
+            c2 = alt.Chart(selected_df).mark_bar().encode(
+                x='yearterm:N',
+                y=alt.Y('sum(count):Q', stack="normalize", axis=alt.Axis(format='%', title='prercentage')),
+                color='gender:N',
+                column='program:N'
+            )
+            with col2:
+                st.altair_chart(c2)
