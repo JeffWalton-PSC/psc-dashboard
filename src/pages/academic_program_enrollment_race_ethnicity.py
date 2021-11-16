@@ -19,7 +19,7 @@ def write():
         src.pages.components.logo()
         st.write(
             """
-            ## Academic Program Enrollment - Gender
+            ## Academic Program Enrollment - Race/Ethnicity
             Select the academic program and term(s) you would like to see.
 """
         )
@@ -29,7 +29,7 @@ def write():
 
         df = (
             pd.read_feather(data_file)
-            .sort_values(['yearterm_sort', 'curriculum', 'gender', 'people_code_id'])
+            .sort_values(['yearterm_sort', 'curriculum', 'updated_ethnicity_code', 'people_code_id'])
         )
 
         program_list = sorted(df['curriculum'].unique())
@@ -51,19 +51,19 @@ def write():
         if program and terms:
             selected_df = (
                 df.loc[(df['curriculum']==program) & (df['current_yearterm'].isin(terms)), 
-                ['current_yearterm', 'yearterm_sort', 'curriculum', 'gender', 'people_code_id']]
-                .groupby(['yearterm_sort', 'current_yearterm', 'curriculum', 'gender'])
+                ['current_yearterm', 'yearterm_sort', 'curriculum', 'updated_ethnicity_code', 'people_code_id']]
+                .groupby(['yearterm_sort', 'current_yearterm', 'curriculum', 'updated_ethnicity_code'])
                 .count()
                 .reset_index()
                 .rename(columns={'people_code_id': 'count', 'current_yearterm': 'yearterm', 'curriculum': 'program'})
-                .sort_values(['yearterm_sort', 'program', 'gender'])
+                .sort_values(['yearterm_sort', 'program', 'updated_ethnicity_code'])
                 .astype({'count': 'UInt16'})
             )
 
             program_enrollment = pd.pivot(
                 selected_df,
                 values='count',
-                index=['program', 'gender'],
+                index=['program', 'updated_ethnicity_code'],
                 columns=['yearterm'],
             )[terms]
 
@@ -74,7 +74,7 @@ def write():
             st.download_button(
                 label="Download data as CSV",
                 data=csv,
-                file_name='academic_program_enrollment_gender.csv',
+                file_name='academic_program_enrollment_race_ethnicity.csv',
                 mime='text/csv',
             )
 
@@ -83,7 +83,7 @@ def write():
             c1 = alt.Chart(selected_df).mark_bar().encode(
                 x='yearterm:N',
                 y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
-                color='gender:N',
+                color=alt.Color('updated_ethnicity_code:N', legend=alt.Legend(title="Race/Ethnicity")),
                 column='program:N'
             )
             with col1:
@@ -92,7 +92,7 @@ def write():
             c2 = alt.Chart(selected_df).mark_bar().encode(
                 x='yearterm:N',
                 y=alt.Y('sum(count):Q', stack="normalize", axis=alt.Axis(format='%', title='prercentage')),
-                color='gender:N',
+                color=alt.Color('updated_ethnicity_code:N', legend=alt.Legend(title="Race/Ethnicity")),
                 column='program:N'
             )
             with col2:

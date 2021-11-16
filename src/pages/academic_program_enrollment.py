@@ -80,7 +80,7 @@ def write():
 
             c = alt.Chart(selected_df).mark_bar().encode(
                 x='yearterm:N',
-                y='sum(count):Q',
+                y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                 color='yearterm:N',
                 column='program:N'
             )
