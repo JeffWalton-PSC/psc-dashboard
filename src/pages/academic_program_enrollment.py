@@ -24,8 +24,8 @@ def write():
 """
         )
 
-        # data_path = Path(r"E:\Data\Census\CensusDatabase")
-        data_path = Path(r"C:\JW\IR\Python\census")
+        data_path = Path(r"E:\Data\Census\CensusDatabase")
+        # data_path = Path(r"C:\JW\IR\Python\census")
         data_file = data_path / "census_db.arr"
 
         df = (

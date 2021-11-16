@@ -1,6 +1,7 @@
 """Main module for the streamlit app"""
 import sys
 import streamlit as st
+from streamlit import cli as stcli
 
 import src.pages
 import src.pages.home
