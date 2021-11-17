@@ -31,7 +31,7 @@ def main():
     
     page = PAGES[selection]
     
-    with st.spinner(f"Loading {selection} ..."):
+    with st.spinner(f"Selecting {selection} ..."):
         src.pages.write_page(page)
     st.sidebar.markdown("---")
     st.sidebar.title("Info")

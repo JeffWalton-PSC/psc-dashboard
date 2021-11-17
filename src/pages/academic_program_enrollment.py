@@ -15,7 +15,7 @@ def convert_df(df):
 
 def write():
     """Used to write the page in the app.py file"""
-    with st.spinner("Loading Home ..."):
+    with st.spinner("Loading Academic Program Enrollment ..."):
         src.pages.components.logo()
         st.write(
             """
@@ -82,7 +82,8 @@ def write():
                 x='yearterm:N',
                 y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                 color='yearterm:N',
-                column='program:N'
+                column='program:N',
+                tooltip=['program', 'yearterm', alt.Tooltip('sum(count):Q', title='students')],
             )
 
             st.altair_chart(c)

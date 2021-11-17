@@ -15,7 +15,7 @@ def convert_df(df):
 
 def write():
     """Used to write the page in the app.py file"""
-    with st.spinner("Loading Home ..."):
+    with st.spinner("Loading Academic Program Enrollment - Gender ..."):
         src.pages.components.logo()
         st.write(
             """
@@ -74,7 +74,7 @@ def write():
             st.download_button(
                 label="Download data as CSV",
                 data=csv,
-                file_name='academic_program_enrollment_gender.csv',
+                file_name=f'{program}_academic_program_enrollment_gender.csv',
                 mime='text/csv',
             )
 
@@ -84,16 +84,28 @@ def write():
                 x='yearterm:N',
                 y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                 color='gender:N',
-                column='program:N'
+                column='program:N',
+                tooltip=['program', 'yearterm', 'gender', alt.Tooltip('sum(count):Q', title='students')],
             )
             with col1:
                 st.altair_chart(c1)
             
-            c2 = alt.Chart(selected_df).mark_bar().encode(
+            c2 = alt.Chart(selected_df).transform_aggregate(
+                c='sum(count)',
+                groupby=['program', 'yearterm', 'gender']
+            ).transform_joinaggregate(
+                total='sum(c)',
+                groupby=['program', 'yearterm']  
+            ).transform_calculate(
+                frac=alt.datum.c / alt.datum.total
+            ).mark_bar().encode(
                 x='yearterm:N',
-                y=alt.Y('sum(count):Q', stack="normalize", axis=alt.Axis(format='%', title='prercentage')),
+                y=alt.Y('c:Q', stack="normalize", axis=alt.Axis(format='%', title='percent')),
                 color='gender:N',
-                column='program:N'
+                column='program:N',
+                tooltip=['program', 'yearterm', 'gender', 
+                    alt.Tooltip('c:Q', title='total students'),
+                    alt.Tooltip('frac:Q', title='percent of students', format='.0%')],
             )
             with col2:
                 st.altair_chart(c2)

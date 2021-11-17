@@ -15,7 +15,7 @@ def convert_df(df):
 
 def write():
     """Used to write the page in the app.py file"""
-    with st.spinner("Loading Home ..."):
+    with st.spinner("Loading Academic Program Enrollment - Race/Ethnicity ..."):
         src.pages.components.logo()
         st.write(
             """
@@ -74,7 +74,7 @@ def write():
             st.download_button(
                 label="Download data as CSV",
                 data=csv,
-                file_name='academic_program_enrollment_race_ethnicity.csv',
+                file_name=f'{program}_academic_program_enrollment_race_ethnicity.csv',
                 mime='text/csv',
             )
 
@@ -84,16 +84,29 @@ def write():
                 x='yearterm:N',
                 y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                 color=alt.Color('updated_ethnicity_code:N', legend=alt.Legend(title="Race/Ethnicity")),
-                column='program:N'
+                column='program:N',
+                tooltip=['program', 'yearterm', 'updated_ethnicity_code', alt.Tooltip('sum(count):Q', title='students')],
             )
             with col1:
                 st.altair_chart(c1)
             
-            c2 = alt.Chart(selected_df).mark_bar().encode(
+            c2 = alt.Chart(selected_df).transform_aggregate(
+                c='sum(count)',
+                groupby=['program', 'yearterm', 'updated_ethnicity_code']
+            ).transform_joinaggregate(
+                total='sum(c)',
+                groupby=['program', 'yearterm']  
+            ).transform_calculate(
+                frac=alt.datum.c / alt.datum.total
+            ).mark_bar().encode(
                 x='yearterm:N',
-                y=alt.Y('sum(count):Q', stack="normalize", axis=alt.Axis(format='%', title='prercentage')),
+                y=alt.Y('c:Q', stack="normalize", axis=alt.Axis(format='%', title='percent')),
                 color=alt.Color('updated_ethnicity_code:N', legend=alt.Legend(title="Race/Ethnicity")),
-                column='program:N'
+                column='program:N',
+                tooltip=['program', 'yearterm', 'updated_ethnicity_code', 
+                    alt.Tooltip('c:Q', title='total students'),
+                    alt.Tooltip('frac:Q', title='percent of students', format='.0%')],
             )
+
             with col2:
                 st.altair_chart(c2)
