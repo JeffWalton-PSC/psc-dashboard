@@ -9,6 +9,7 @@ import src.pages.components
 # local connection information
 import local_db
 
+WEEKS_FOR_PREVIOUS_DEPOSITS = 3
 
 @st.cache
 def convert_df(df):
@@ -35,7 +36,7 @@ def write():
         sql_str = f"""
             SELECT *
             FROM dbo.[ACADEMICCALENDAR]
-            WHERE [ACADEMICCALENDAR].[END_DATE] > '{today - dt.timedelta(weeks=3)}'
+            WHERE [ACADEMICCALENDAR].[END_DATE] > '{today - dt.timedelta(weeks=WEEKS_FOR_PREVIOUS_DEPOSITS)}'
             """
         df_cal = pd.read_sql_query(sql_str, connection)
         yearterm_sort = ( lambda r: 
