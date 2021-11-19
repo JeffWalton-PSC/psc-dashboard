@@ -8,6 +8,7 @@ import src.pages.home
 import src.pages.academic_program_enrollment
 import src.pages.academic_program_enrollment_gender
 import src.pages.academic_program_enrollment_race_ethnicity
+import src.pages.admissions_current_deposits
 import src.pages.about
 
 PAGES = {
@@ -15,6 +16,7 @@ PAGES = {
     "Academic Program Enrollment": src.pages.academic_program_enrollment, 
     "Academic Program - Gender": src.pages.academic_program_enrollment_gender,
     "Academic Program - Race/Ethnicity": src.pages.academic_program_enrollment_race_ethnicity,
+    "Admissions - Current Deposits": src.pages.admissions_current_deposits,
     "About": src.pages.about,
 }
 

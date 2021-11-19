@@ -3,7 +3,6 @@ import pandas as pd
 import streamlit as st
 import altair as alt
 from pathlib import Path
-from streamlit import cli as stcli
 import src.pages.components
 
 
