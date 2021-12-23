@@ -3,7 +3,6 @@ import pandas as pd
 import streamlit as st
 import altair as alt
 from pathlib import Path
-from streamlit import cli as stcli
 import src.pages.components
 
 
@@ -15,7 +14,7 @@ def convert_df(df):
 
 def write():
     """Used to write the page in the app.py file"""
-    with st.spinner("Loading Home ..."):
+    with st.spinner("Loading Academic Program Enrollment ..."):
         src.pages.components.logo()
         st.write(
             """
@@ -24,8 +23,7 @@ def write():
 """
         )
 
-        # data_path = Path(r"E:\Data\Census\CensusDatabase")
-        data_path = Path(r"C:\JW\IR\Python\census")
+        data_path = Path(r"\\psc-data\E\Data\Census\CensusDatabase")
         data_file = data_path / "census_db.arr"
 
         df = (
@@ -81,9 +79,10 @@ def write():
 
             c = alt.Chart(selected_df).mark_bar().encode(
                 x='yearterm:N',
-                y='sum(count):Q',
+                y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                 color='yearterm:N',
-                column='program:N'
+                column='program:N',
+                tooltip=['program', 'yearterm', alt.Tooltip('sum(count):Q', title='students')],
             )
 
             st.altair_chart(c)

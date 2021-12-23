@@ -1,21 +1,35 @@
 """Main module for the streamlit app"""
 import sys
 import streamlit as st
+from streamlit import cli as stcli
 
 import src.pages
 import src.pages.home
 import src.pages.academic_program_enrollment
+import src.pages.academic_program_enrollment_gender
+import src.pages.academic_program_enrollment_race_ethnicity
+import src.pages.admissions_current_deposits
 import src.pages.about
 
 PAGES = {
     "Home": src.pages.home,
     "Academic Program Enrollment": src.pages.academic_program_enrollment, 
+    "Academic Program - Gender": src.pages.academic_program_enrollment_gender,
+    "Academic Program - Race/Ethnicity": src.pages.academic_program_enrollment_race_ethnicity,
+    "Admissions - Current Deposits": src.pages.admissions_current_deposits,
     "About": src.pages.about,
 }
 
 
 def main():
     """Main function of the App"""
+    st.set_page_config(
+        page_title="PSC IR Dashboard",
+        page_icon="static/favicon.png",
+        layout="wide",
+        initial_sidebar_state="expanded",
+    )
+
     st.sidebar.write(
         "[![Paul Smith's College](https://www.paulsmiths.edu/news/wp-content/themes/paulsmiths-divi-2019/images/logo.png)]"
         "(https://www.paulsmiths.edu)"
@@ -26,7 +40,7 @@ def main():
     
     page = PAGES[selection]
     
-    with st.spinner(f"Loading {selection} ..."):
+    with st.spinner(f"Selecting {selection} ..."):
         src.pages.write_page(page)
     st.sidebar.markdown("---")
     st.sidebar.title("Info")
