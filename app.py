@@ -35,13 +35,15 @@ def main():
         "(https://www.paulsmiths.edu)"
     )
 
+    st.sidebar.title("IR Dashboard")
+    st.sidebar.markdown("---")
     st.sidebar.title("Navigation")
     selection = st.sidebar.radio("Go to", list(PAGES.keys()), index=0)
     
     page = PAGES[selection]
-    
     with st.spinner(f"Selecting {selection} ..."):
         src.pages.write_page(page)
+    
     st.sidebar.markdown("---")
     st.sidebar.title("Info")
     st.sidebar.write(
