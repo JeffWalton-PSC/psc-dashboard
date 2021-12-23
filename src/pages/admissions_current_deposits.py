@@ -9,7 +9,11 @@ import src.pages.components
 # local connection information
 import local_db
 
+<<<<<<< HEAD
 WEEKS_FOR_PREVIOUS_DEPOSITS = 52
+=======
+WEEKS_FOR_PREVIOUS_DEPOSITS = 3
+>>>>>>> 0b22d1c5040c2405c436915f62e5f8c2fd15a898
 
 @st.cache
 def convert_df(df):
@@ -37,14 +41,23 @@ def write():
             SELECT *
             FROM dbo.[ACADEMICCALENDAR]
             WHERE [ACADEMICCALENDAR].[END_DATE] > '{today - dt.timedelta(weeks=WEEKS_FOR_PREVIOUS_DEPOSITS)}'
+<<<<<<< HEAD
               AND [ACADEMICCALENDAR].[ACADEMIC_TERM] IN ('FALL', 'SPRING', 'SUMMER')
+=======
+>>>>>>> 0b22d1c5040c2405c436915f62e5f8c2fd15a898
             """
         df_cal = pd.read_sql_query(sql_str, connection)
         yearterm_sort = ( lambda r: 
             r['ACADEMIC_YEAR'] + '01' if r['ACADEMIC_TERM']=='SPRING' else
+<<<<<<< HEAD
             (r['ACADEMIC_YEAR'] + '02' if r['ACADEMIC_TERM']=='SUMMER' else
             (r['ACADEMIC_YEAR'] + '03' if r['ACADEMIC_TERM']=='FALL' else
             r['ACADEMIC_YEAR'] + '00'))
+=======
+            r['ACADEMIC_YEAR'] + '02' if r['ACADEMIC_TERM']=='SUMMER' else
+            r['ACADEMIC_YEAR'] + '03' if r['ACADEMIC_TERM']=='FALL' else
+            r['ACADEMIC_YEAR'] + '00'
+>>>>>>> 0b22d1c5040c2405c436915f62e5f8c2fd15a898
         )
         df_cal['yearterm_sort'] = df_cal.apply(yearterm_sort, axis=1)
 
@@ -77,7 +90,11 @@ def write():
             [ACADEMIC].[ADMIT_YEAR] = [ACADEMIC].[ACADEMIC_YEAR]  AND
             [ACADEMIC].[ADMIT_TERM] = [ACADEMIC].[ACADEMIC_TERM]  AND
             [ACADEMIC].[ACADEMIC_YEAR] IN {tuple(year_list)}  AND
+<<<<<<< HEAD
             [ACADEMIC].[ACADEMIC_TERM] IN ('FALL', 'SPRING', 'SUMMER') AND
+=======
+            [ACADEMIC].[ACADEMIC_TERM] IN {tuple(term_list)}  AND
+>>>>>>> 0b22d1c5040c2405c436915f62e5f8c2fd15a898
             [ACADEMIC].[APP_STATUS] = N'500'  AND
             [ACADEMIC].[ACADEMIC_SESSION] = N''   AND
             (ACADEMIC.APP_DECISION = 'DPAC' OR
