@@ -56,7 +56,7 @@ def write():
                 .sort_values(['yearterm_sort', 'END_DATE', ])
                 .drop_duplicates(['yearterm_sort'], keep='last')
                 )
-
+        
         year_list = sorted(df_cal['ACADEMIC_YEAR'].unique())
         term_list = sorted(df_cal['ACADEMIC_TERM'].unique())
         yearterm_list = df_cal['yearterm'].unique()
@@ -111,7 +111,8 @@ def write():
             .sort_values(['yearterm_sort', 'program'])
             .astype({'count': 'UInt16'})
         )
-
+        yearterm_list = [ yt for yt in yearterm_list if (yt in df['yearterm'].unique())]
+        
         program_deposits = pd.pivot(
             df,
             values='count',
