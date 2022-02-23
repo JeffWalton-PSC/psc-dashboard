@@ -33,6 +33,8 @@ def write():
         today = dt.date.today()
         today_str = today.strftime("%Y%m%d")
 
+        st.write(f"Data for prior and current semesters are 'total' deposits; data for future semesters are 'current' deposits for today ({today_str}).")
+
         sql_str = f"""
             SELECT *
             FROM dbo.[ACADEMICCALENDAR]
@@ -142,6 +144,7 @@ def write():
             .astype({'deposits': 'UInt16'})
         )
         st.markdown("### Total Deposits")
+        st.write(f"Data for prior and current semesters are 'total' deposits; data for future semesters are 'current' deposits for today ({today_str}).")
         st.dataframe(program_deposits_total)
 
         c = alt.Chart(df).mark_bar().encode(
