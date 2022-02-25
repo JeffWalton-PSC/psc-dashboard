@@ -4,6 +4,7 @@ import streamlit as st
 import altair as alt
 import datetime as dt
 from pathlib import Path
+import io
 import src.pages.components
 
 # local connection information
@@ -22,8 +23,25 @@ current_yt_sort = current_yt_df['yearterm_sort'].iloc[0]
 
 @st.cache
 def convert_df(df):
-    # IMPORTANT: Cache the conversion to prevent computation on every rerun
     return df.to_csv(index=False).encode('utf-8')
+
+@st.cache
+def convert_df_xlsx(df_list):
+    xl_buffer = io.BytesIO()
+    with pd.ExcelWriter(
+        xl_buffer,
+        date_format="YYYY-MM-DD",
+        datetime_format="YYYY-MM-DD HH:MM:SS"
+    ) as writer:
+        for d in df_list:
+            df = d[0]
+            sheet = d[1]
+            df.to_excel( writer,
+                sheet_name=sheet,
+                index=False
+                )
+    return xl_buffer.getvalue()
+
 
 
 def write():
@@ -125,6 +143,7 @@ def write():
             sections = sections.drop_duplicates(['ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION', 'EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION', 'DAY', 'START_TIME'])
             sections = sections.sort_values(['EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION', 'DAY', 'START_TIME'])
 
+            # course schedule
             keep_cols = ['ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION', 'EVENT_ID', 'EVENT_LONG_NAME', 'EVENT_SUB_TYPE', 'SECTION',
                     'DAY', 'START_TIME_txt', 'END_TIME_txt', 'ADDS', 'MAX_PARTICIPANT', 'WAIT_LIST', 'START_DATE', 'END_DATE',
                     'LAST_NAME', 'FIRST_NAME', 'Email', 'BUILDING_CODE', 'ROOM_ID', 'COLLEGE', 'CREDITS',  
@@ -161,7 +180,7 @@ def write():
 
             st.markdown("---")
 
-            # time conflicts
+            # room conflicts
             st.write(f"#### {yearterm} Room Conflicts")
             sections['course_id'] = (
                 sections["EVENT_ID"].str.rstrip().str.upper() + "." + 
@@ -203,7 +222,7 @@ def write():
             )
             code_day = code_day.loc[(code_day['DAY_BOOL']=='Y'),:]
 
-            keep_cols = ['course_id', 'building_room', 'START_DATE', 'END_DATE', 'DAY', 'START_TIME', 'END_TIME',]
+            keep_cols = ['course_id', 'building_room', 'START_DATE', 'END_DATE', 'DAY', 'START_TIME', 'END_TIME', 'ADDS']
             s1 = ( s.merge(code_day,
                     how='left',
                     left_on='DAY',
@@ -232,12 +251,12 @@ def write():
                         }
                     )
                 .drop(
-                        ['building_room_2', 'DAY_2'],
+                        ['building_room_2', 'DAY_2', 'ADDS_1', 'ADDS_2'],
                         axis='columns',
                     )
             )
             
-            # conflict tests
+            #     conflict tests
             c['same_course'] = c['course_id_1'] == c['course_id_2']
             c['date_start_overlap'] = (c['START_DATE_1'] >= c['START_DATE_2']) & (c['START_DATE_1'] < c['END_DATE_2'])
             c['date_end_overlap'] = (c['END_DATE_1'] <= c['END_DATE_2']) & (c['END_DATE_1'] > c['START_DATE_2'])
@@ -260,6 +279,35 @@ def write():
                 label=f"Download room conflicts for {yearterm} as CSV",
                 data=convert_df(c),
                 file_name=f"{term}{year}_room_conflicts_{today_str}.csv",
+                mime='text/csv',
+            )
+
+            st.markdown("---")
+
+            # daily room schedule
+            st.write(f"#### {yearterm} Daily Room Schedule")
+
+            s1['day_sort'] = s1['DAY'].fillna(8)
+            daily_room_schedule = ( s1.replace({ 'day_sort': {
+                    'SUN': 1,
+                    'MON': 2,
+                    'TUE': 3,
+                    'WED': 4,
+                    'THU': 5,
+                    'FRI': 6,
+                    'SAT': 7,
+                    } }
+                )
+                .loc[:,['building_room', 'DAY', 'day_sort', 'START_TIME', 'END_TIME', 'course_id', 'ADDS']]
+                .sort_values(['building_room', 'day_sort', 'START_TIME', ])
+            )
+
+            st.dataframe(daily_room_schedule)
+            st.write(f"{daily_room_schedule.shape}")
+            st.download_button(
+                label=f"Download daily room schedule for {yearterm} as CSV",
+                data=convert_df(daily_room_schedule),
+                file_name=f"{term}{year}_daily_room_schedule_{today_str}.csv",
                 mime='text/csv',
             )
 
@@ -293,3 +341,25 @@ def write():
                 file_name=f"{term}{year}_teaching_faculty_{today_str}.csv",
                 mime='text/csv',
             )
+
+            st.markdown("---")
+
+            # Export to Excel
+            st.write(f"#### {yearterm} Excel workbook with all course scheduling tables")
+
+            df_to_add = [
+                    [schedule, 'course_schedule'],
+                    [no_room_assigned, 'no_room_assigned'],
+                    [c, 'room_conflicts'],
+                    [daily_room_schedule, 'daily_room_schedule'],
+                    [teaching_faculty_gb.reset_index(), 'teaching_faculty'],
+            ]
+
+            st.download_button(
+                label=f"Download Excel workbook for {yearterm} as .xlsx",
+                data=convert_df_xlsx(df_to_add),
+                file_name=f"{term}{year}_course_scheduling_{today_str}.xlsx",
+                mime='application/vnd.ms-excel',
+            )
+            
+
