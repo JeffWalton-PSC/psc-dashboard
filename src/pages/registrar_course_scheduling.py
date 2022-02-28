@@ -21,9 +21,11 @@ current_year = current_yt_df['year'].iloc[0]
 current_yt = current_yt_df['yearterm'].iloc[0]
 current_yt_sort = current_yt_df['yearterm_sort'].iloc[0]
 
+
 @st.cache
 def convert_df(df):
     return df.to_csv(index=False).encode('utf-8')
+
 
 @st.cache
 def convert_df_xlsx(df_list):
@@ -41,7 +43,6 @@ def convert_df_xlsx(df_list):
                 index=False
                 )
     return xl_buffer.getvalue()
-
 
 
 def write():
@@ -166,7 +167,9 @@ def write():
             # remove ONLINE and buildings with no rooms
             no_room_assigned = sections.loc[((~sections['BUILDING_CODE'].isin(['ONLINE', 'FORCC', 'LAMBERT', 'SAWMILL', 'SUGARB'])) &
                     (sections['ADDS'] > 0) & 
-                    (sections['BUILDING_CODE'].isna() | sections['ROOM_ID'].isna())
+                    (sections['DAY'].notna()) & 
+                    (sections['BUILDING_CODE'].isna() | (sections['BUILDING_CODE']=='')  | ~(sections['BUILDING_CODE'].str.isalnum().fillna(False)) | 
+                        sections['ROOM_ID'].isna() | (sections['ROOM_ID']=='') | ~(sections['ROOM_ID'].str.isalnum().fillna(False)) )
                     ), :]
             no_room_assigned = no_room_assigned.sort_values(['EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION', 'DAY', 'START_TIME'])
             st.dataframe(no_room_assigned)
@@ -203,6 +206,7 @@ def write():
                     ), 
                     keep_cols
                     ]
+
             code_day = pc.select('CODE_DAY',
                 fields=['CODE_VALUE_KEY', 'DAY_SUNDAY', 'DAY_MONDAY', 'DAY_TUESDAY', 'DAY_WEDNESDAY', 'DAY_THURSDAY', 'DAY_FRIDAY', 'DAY_SATURDAY', ],
                 )
@@ -257,7 +261,7 @@ def write():
             )
             
             #     conflict tests
-            c['same_course'] = c['course_id_1'] == c['course_id_2']
+            c['same_course'] = (c['course_id_1'] == c['course_id_2'])
             c['date_start_overlap'] = (c['START_DATE_1'] >= c['START_DATE_2']) & (c['START_DATE_1'] < c['END_DATE_2'])
             c['date_end_overlap'] = (c['END_DATE_1'] <= c['END_DATE_2']) & (c['END_DATE_1'] > c['START_DATE_2'])
             c['date_tot_overlap'] = (c['START_DATE_1'] <= c['START_DATE_2']) & (c['END_DATE_1'] >= c['END_DATE_2'])
@@ -268,13 +272,13 @@ def write():
             c['time_overlap'] = (c['time_start_overlap'] == True) | (c['time_end_overlap'] == True) | (c['time_tot_overlap'] == True)
 
             keep_cols = ['building_room', 'DAY', 'course_id_1', 'START_TIME_1', 'END_TIME_1', 'course_id_2', 'START_TIME_2', 'END_TIME_2',  
-                        'START_DATE_1', 'END_DATE_1', 'START_DATE_2', 'END_DATE_2']
+                        'START_DATE_1', 'END_DATE_1', 'START_DATE_2', 'END_DATE_2',                        
+                        ]
             c = c.loc[((c['same_course'] == False) & (c['date_overlap'] == True) & (c['time_overlap'] == True)), keep_cols]
             c = c.sort_values(['building_room', 'DAY', 'course_id_1', 'course_id_2', 'START_TIME_1', 'START_TIME_2'])
 
             st.dataframe(c)
             st.write(f"{c.shape}")
-
             st.download_button(
                 label=f"Download room conflicts for {yearterm} as CSV",
                 data=convert_df(c),
