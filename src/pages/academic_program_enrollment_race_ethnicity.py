@@ -99,12 +99,12 @@ def write():
                 frac=alt.datum.c / alt.datum.total
             ).mark_bar().encode(
                 x='yearterm:N',
-                y=alt.Y('c:Q', stack="normalize", axis=alt.Axis(format='%', title='percent')),
+                y=alt.Y('c:Q', stack="normalize", axis=alt.Axis(format='.0%', title='percent')),
                 color=alt.Color('updated_ethnicity_code:N', legend=alt.Legend(title="Race/Ethnicity")),
                 column='program:N',
                 tooltip=['program', 'yearterm', 'updated_ethnicity_code', 
                     alt.Tooltip('c:Q', title='total students'),
-                    alt.Tooltip('frac:Q', title='percent of students', format='.0%')],
+                    alt.Tooltip('frac:Q', title='percent of students', format='.1%')],
             )
 
             with col2:

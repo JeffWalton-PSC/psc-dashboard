@@ -1,14 +1,8 @@
-import numpy as np
 import pandas as pd
 import streamlit as st
-import altair as alt
 import datetime as dt
-from pathlib import Path
 import io
 import src.pages.components
-
-# local connection information
-import local_db
 
 # PowerCampus utilities
 import powercampus as pc
@@ -54,8 +48,6 @@ def write():
             ## Registrar - Course Scheduling
 """
         )
-
-        connection = local_db.connection()
 
         today = dt.datetime.today()
         today_str = today.strftime("%Y%m%d_%H%M")

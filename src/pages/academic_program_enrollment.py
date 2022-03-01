@@ -14,11 +14,11 @@ def convert_df(df):
 
 def write():
     """Used to write the page in the app.py file"""
-    with st.spinner("Loading Academic Program Enrollment ..."):
+    with st.spinner("Loading Academic Program - Enrollment ..."):
         src.pages.components.logo()
         st.write(
             """
-            ## Academic Program Enrollment
+            ## Academic Program - Enrollment
             Select the academic program(s) and term(s) you would like to see.
 """
         )
@@ -68,11 +68,9 @@ def write():
 
             st.dataframe(program_enrollment)
 
-            csv = convert_df(program_enrollment)
-
             st.download_button(
                 label="Download data as CSV",
-                data=csv,
+                data=convert_df(program_enrollment),
                 file_name='academic_program_enrollment.csv',
                 mime='text/csv',
             )
