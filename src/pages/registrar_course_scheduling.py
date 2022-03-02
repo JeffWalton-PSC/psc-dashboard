@@ -176,7 +176,7 @@ def write():
             st.markdown("---")
 
             # room conflicts
-            st.write(f"#### {yearterm} Room Conflicts")
+            st.write(f"#### {yearterm} Room Conflicts (only courses with students enrolled)")
             sections['course_id'] = (
                 sections["EVENT_ID"].str.rstrip().str.upper() + "." + 
                 sections["EVENT_SUB_TYPE"].str.upper() + "."  + 

@@ -57,11 +57,17 @@ def write():
 
         term = st.selectbox(label="Select term:", options=['Fall', 'Spring'])
 
-        undergrad_only = st.checkbox("Undergrad sections only", value=True )
+        undergrad_only = st.checkbox("Undergrad students only", value=True )
         # exclude_online = st.checkbox("Exclude online sections", value=True )
 
-        section_types = ['COMB', 'HYBD', 'LEC', 'PRAC', 'LAB', 'SI']
-        include_section_types = st.multiselect("Include section types:", options=section_types, default=['COMB', 'HYBD', 'LEC', 'PRAC'])
+        section_types = ['COMB', 'HYBD', 'LEC', 'ONLN', 'PRAC', 'LAB', 'SI']
+        include_section_types = st.multiselect("Include section types:", options=section_types, default=['COMB', 'HYBD', 'LEC', 'ONLN', 'PRAC'])
+
+        if st.radio( "Select grade:", options=['Mid-term', 'Final'], index=1 ) == 'Mid-term':
+            grade_type = 'MID_GRADE'
+        else:
+            grade_type = 'FINAL_GRADE'
+
 
         if year_start and year_end and term and include_section_types:
 
@@ -74,13 +80,9 @@ def write():
                 where=f"ACADEMIC_YEAR>='{int(year_start)}' and ACADEMIC_YEAR<='{int(year_end)}' and ACADEMIC_TERM='{term}' " +
                     "and ACADEMIC_SESSION='' and CREDITS>0 and CURRICULUM<>'ADVST' ", 
             )
-            st.write(f"{academic.shape=}")
 
             if undergrad_only:
-                academic = academic.loc[(sections['PROGRAM'] != 'G')]
-            # if exclude_online:
-            #     sections = sections.loc[(~sections['SECTION'].str.contains('ON'))]
-            st.write(f"{academic.shape=}")
+                academic = academic.loc[(academic['PROGRAM'] != 'G')]
 
             transcriptdetail = pc.select("TRANSCRIPTDETAIL",
                 fields=['PEOPLE_CODE_ID', 'ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION',
@@ -88,15 +90,14 @@ def write():
                     'CREDIT', 'MID_GRADE', 'FINAL_GRADE', 'ADD_DROP_WAIT',
                     ],
                 where=f"ACADEMIC_YEAR>='{int(year_start)}' and ACADEMIC_YEAR<='{int(year_end)}' and ACADEMIC_TERM='{term}' " +
-                    "and ACADEMIC_SESSION='' and CREDITS>0 and CURRICULUM<>'ADVST' ", 
+                    "and ADD_DROP_WAIT='A' ", 
             )
-            st.write(f"{transcriptdetail.shape=}")
+            transcriptdetail = transcriptdetail.loc[(transcriptdetail['EVENT_SUB_TYPE'].isin(include_section_types))]
 
             atd = academic.merge(transcriptdetail,
                 how='left',
                 on=['PEOPLE_CODE_ID', 'ACADEMIC_YEAR', 'ACADEMIC_TERM', ]
                 )
-            st.write(f"{atd.shape=}")
             atd = pc.add_col_yearterm(atd)
             atd = pc.add_col_yearterm_sort(atd)
             atd['course_section_id'] = (
@@ -106,16 +107,109 @@ def write():
                 atd["ACADEMIC_TERM"].str.title()  + "."  + 
                 atd["SECTION"].str.upper()
                 )
-            st.write(f"{atd.shape=}")
+            keep_cols = [
+                'PEOPLE_CODE_ID', 'yearterm', 'course_section_id', 'MID_GRADE', 'FINAL_GRADE',
+            ]
+            atd = atd.loc[:, keep_cols]
 
+            grade_mapping = [
+                ["A+",   "A+"],
+                ["A+*",  "A+"],
+                ["A",    "A"],
+                ["A*",   "A"],
+                ["B+",   "B+"],
+                ["B+*",  "B+"],
+                ["B",    "B"],
+                ["B*",   "B"],
+                ["C+",   "C+"],
+                ["C+*",  "C+"],
+                ["C",    "C"],
+                ["C*",   "C"],
+                ["D+",   "D+"],
+                ["D+*",  "D+"],
+                ["D",    "D"],
+                ["D*",   "D"],
+                ["F",    "F"],
+                ["F*",   "F"],
+                ["P",    "P"],
+                ["P*",   "P"],
+                ["DEF",  "INC"],
+                ["INC",  "INC"],
+                ["INC*", "INC"],
+                ["W",    "W"],
+                ["W*",   "W"],
+                ["WF",   "W"],
+                ["WF*",  "W"],
+                ["WP",   "W"],
+                ["WP*",  "W"],
+                ["AU",   "AU"],
+            ]
+            grades = pd.DataFrame(
+                grade_mapping,
+                columns=['pc_grade', 'grade']
+            )
+            atd = atd.merge(grades,
+                how='left',
+                left_on=grade_type,
+                right_on='pc_grade'
+                )
 
 
             st.write(f"#### Grade Distribution ({term} {year_start}-{year_end})")
 
-            # st.dataframe(agg_ss)
-            # st.download_button(
-            #     label="Download data as CSV",
-            #     data=convert_df(agg_ss),
-            #     file_name=f"{term}_{year_start}-{year_end}_section_sizes.csv",
-            #     mime='text/csv',
-            # )
+            grade_sort = [ "A+", "A", "B+", "B", "C+", "C", "D+", "D", "F", "P", "INC", "W", "AU", ]
+            grade_sort_dict = {value: order for order, value in enumerate(grade_sort)}
+            # st.write(grade_sort_dict)
+            grade_sorter = lambda x: x.map(grade_sort_dict).fillna(x)
+
+            # def grade_sorter(column):
+            #     cat = pd.Categorical(column, categories=grade_sort, ordered=True).fillna(column)
+            #     return pd.Series(cat)
+
+            g = ( atd[['yearterm', 'PEOPLE_CODE_ID', 'course_section_id', 'grade',]].groupby(['yearterm', 'grade']).agg(
+                    {'PEOPLE_CODE_ID': ['count', ]}
+                )
+                .droplevel(0, axis=1)
+                # .sort_index(level=['yearterm', 'grade'], key=grade_sorter )
+                .sort_index()
+                .reset_index()
+            )
+            # st.write(pd.Categorical(g['grade'], categories=grade_sort, ordered=True))
+            
+
+            g = g.sort_values(['yearterm', 'grade'], key=grade_sorter)
+
+
+            grade_dist = ( g.pivot(
+                    index='yearterm', 
+                    columns='grade',
+                    values='count'
+                    )
+                .fillna(0)
+                .reset_index()
+                .loc[:,['yearterm'] + grade_sort]
+            )
+            grade_dist[grade_sort] = grade_dist[grade_sort].astype(int)
+            st.dataframe(grade_dist)
+            st.download_button(
+                label="Download data as CSV",
+                data=convert_df(grade_dist),
+                file_name=f"{term}_{year_start}-{year_end}_grade_distribution.csv",
+                mime='text/csv',
+            )
+
+            # st.dataframe(g)
+            # st.write(grade_sort)
+            c1 = alt.Chart(g).transform_joinaggregate(
+                    YearTermCount='sum(count)',
+                    groupby=['yearterm']
+                ).transform_calculate(
+                    PercentOfTotal="datum.count / datum.YearTermCount",
+                ).mark_bar().encode(
+                x='yearterm:N',
+                y=alt.Y('PercentOfTotal:Q', axis=alt.Axis(title='percent of yearterm grades', format='.0%')),
+                color='yearterm:N',
+                column=alt.Column(shorthand='grade:N', sort=grade_sort),
+                tooltip=['grade', 'yearterm', alt.Tooltip('sum(count):Q', title='count'), alt.Tooltip('PercentOfTotal:Q', title='pct of yearterm', format='.3p')],
+            )
+            st.altair_chart(c1)
