@@ -57,8 +57,7 @@ def write():
 
         term = st.selectbox(label="Select term:", options=['Fall', 'Spring'])
 
-        undergrad_only = st.checkbox("Undergrad students only", value=True )
-        # exclude_online = st.checkbox("Exclude online sections", value=True )
+        undergrad_only = st.checkbox("Undergraduate students only", value=True )
 
         section_types = ['COMB', 'HYBD', 'LEC', 'ONLN', 'PRAC', 'LAB', 'SI']
         include_section_types = st.multiselect("Include section types:", options=section_types, default=['COMB', 'HYBD', 'LEC', 'ONLN', 'PRAC'])
@@ -159,26 +158,19 @@ def write():
 
             grade_sort = [ "A+", "A", "B+", "B", "C+", "C", "D+", "D", "F", "P", "INC", "W", "AU", ]
             grade_sort_dict = {value: order for order, value in enumerate(grade_sort)}
-            # st.write(grade_sort_dict)
             grade_sorter = lambda x: x.map(grade_sort_dict).fillna(x)
-
-            # def grade_sorter(column):
-            #     cat = pd.Categorical(column, categories=grade_sort, ordered=True).fillna(column)
-            #     return pd.Series(cat)
 
             g = ( atd[['yearterm', 'PEOPLE_CODE_ID', 'course_section_id', 'grade',]].groupby(['yearterm', 'grade']).agg(
                     {'PEOPLE_CODE_ID': ['count', ]}
                 )
                 .droplevel(0, axis=1)
-                # .sort_index(level=['yearterm', 'grade'], key=grade_sorter )
                 .sort_index()
                 .reset_index()
             )
-            # st.write(pd.Categorical(g['grade'], categories=grade_sort, ordered=True))
             
 
             g = g.sort_values(['yearterm', 'grade'], key=grade_sorter)
-
+            grade_sort = [gr for gr in grade_sort if (gr in g['grade'].unique())]
 
             grade_dist = ( g.pivot(
                     index='yearterm', 
@@ -198,8 +190,6 @@ def write():
                 mime='text/csv',
             )
 
-            # st.dataframe(g)
-            # st.write(grade_sort)
             c1 = alt.Chart(g).transform_joinaggregate(
                     YearTermCount='sum(count)',
                     groupby=['yearterm']
