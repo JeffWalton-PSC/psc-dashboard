@@ -253,15 +253,25 @@ def write():
             )
             
             #     conflict tests
+            # import time
+            # t0 = time.perf_counter()
             c['same_course'] = (c['course_id_1'] == c['course_id_2'])
-            c['date_start_overlap'] = (c['START_DATE_1'] >= c['START_DATE_2']) & (c['START_DATE_1'] < c['END_DATE_2'])
-            c['date_end_overlap'] = (c['END_DATE_1'] <= c['END_DATE_2']) & (c['END_DATE_1'] > c['START_DATE_2'])
-            c['date_tot_overlap'] = (c['START_DATE_1'] <= c['START_DATE_2']) & (c['END_DATE_1'] >= c['END_DATE_2'])
-            c['date_overlap'] = (c['date_start_overlap'] == True) | (c['date_end_overlap'] == True) | (c['date_tot_overlap'] == True)
-            c['time_start_overlap'] = (c['START_TIME_1'] >= c['START_TIME_2']) & (c['START_TIME_1'] < c['END_TIME_2'])
-            c['time_end_overlap'] = (c['END_TIME_1'] <= c['END_TIME_2']) & (c['END_TIME_1'] > c['START_TIME_2'])
-            c['time_tot_overlap'] = (c['START_TIME_1'] <= c['START_TIME_2']) & (c['END_TIME_1'] >= c['END_TIME_2'])
-            c['time_overlap'] = (c['time_start_overlap'] == True) | (c['time_end_overlap'] == True) | (c['time_tot_overlap'] == True)
+            # c['date_start_overlap'] = (c['START_DATE_1'] >= c['START_DATE_2']) & (c['START_DATE_1'] < c['END_DATE_2'])
+            # c['date_end_overlap'] = (c['END_DATE_1'] <= c['END_DATE_2']) & (c['END_DATE_1'] > c['START_DATE_2'])
+            # c['date_tot_overlap'] = (c['START_DATE_1'] <= c['START_DATE_2']) & (c['END_DATE_1'] >= c['END_DATE_2'])
+            # c['date_overlap'] = (c['date_start_overlap'] == True) | (c['date_end_overlap'] == True) | (c['date_tot_overlap'] == True)
+            #         alternatively, test "not overlaping"
+            # c['date_overlap'] = ~( (c['END_DATE_1'] < c['START_DATE_2']) | (c['END_DATE_2'] < c['START_DATE_1']) )
+            #             apply DeMorgan's Law (distribute the ~)
+            c['date_overlap'] = ( (c['END_DATE_1'] >= c['START_DATE_2']) & (c['END_DATE_2'] >= c['START_DATE_1']) )
+            # c['time_start_overlap'] = (c['START_TIME_1'] >= c['START_TIME_2']) & (c['START_TIME_1'] < c['END_TIME_2'])
+            # c['time_end_overlap'] = (c['END_TIME_1'] <= c['END_TIME_2']) & (c['END_TIME_1'] > c['START_TIME_2'])
+            # c['time_tot_overlap'] = (c['START_TIME_1'] <= c['START_TIME_2']) & (c['END_TIME_1'] >= c['END_TIME_2'])
+            # c['time_overlap'] = (c['time_start_overlap'] == True) | (c['time_end_overlap'] == True) | (c['time_tot_overlap'] == True)
+            # c['time_overlap'] = ~( (c['END_TIME_1'] < c['START_TIME_2']) | (c['END_TIME_2'] < c['START_TIME_1']) )
+            c['time_overlap'] = ( (c['END_TIME_1'] >= c['START_TIME_2']) & (c['END_TIME_2'] >= c['START_TIME_1']) )
+            # t1 = time.perf_counter()
+            # st.write(f"{t0=}, {t1=}, {t1-t0=}")
 
             keep_cols = ['building_room', 'DAY', 'course_id_1', 'START_TIME_1', 'END_TIME_1', 'course_id_2', 'START_TIME_2', 'END_TIME_2',  
                         'START_DATE_1', 'END_DATE_1', 'START_DATE_2', 'END_DATE_2',                        
