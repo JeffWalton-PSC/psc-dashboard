@@ -148,7 +148,7 @@ def write():
         st.dataframe(program_deposits_total)
 
         c = alt.Chart(df).mark_bar().encode(
-            x='yearterm:N',
+            x=alt.X('yearterm:N', sort=yearterm_list),
             y=alt.Y('sum(count):Q', axis=alt.Axis(title='deposits')),
             # color=alt.Color('program:N', legend=alt.Legend(title="program")),
             # tooltip=['yearterm', 'program', alt.Tooltip('sum(count):Q', title='deposits')],
