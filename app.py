@@ -11,6 +11,7 @@ import src.pages.academic_program_enrollment_race_ethnicity
 import src.pages.admissions_current_deposits
 import src.pages.admissions_historic_data_by_stage
 import src.pages.college_enrollment_gender
+import src.pages.college_enrollment_race_ethnicity
 import src.pages.program_review_course_enrollment
 import src.pages.registrar_class_times
 import src.pages.registrar_course_scheduling
@@ -26,6 +27,7 @@ PAGES = {
     "Admissions - Current Deposits": src.pages.admissions_current_deposits,
     "Admissions - Historic Data By Stage": src.pages.admissions_historic_data_by_stage,
     "College Enrollment - Gender": src.pages.college_enrollment_gender,
+    "College Enrollment - Race/Ethnicity": src.pages.college_enrollment_race_ethnicity,
     "Program Review - Course Enrollment": src.pages.program_review_course_enrollment,
     "Registrar - Class Times": src.pages.registrar_class_times,
     "Registrar - Course Scheduling": src.pages.registrar_course_scheduling,
