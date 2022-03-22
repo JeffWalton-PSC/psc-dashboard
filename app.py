@@ -10,6 +10,7 @@ import src.pages.academic_program_enrollment_gender
 import src.pages.academic_program_enrollment_race_ethnicity
 import src.pages.admissions_current_deposits
 import src.pages.admissions_historic_data_by_stage
+import src.pages.program_review_course_enrollment
 import src.pages.registrar_class_times
 import src.pages.registrar_course_scheduling
 import src.pages.registrar_grade_distribution
@@ -23,6 +24,7 @@ PAGES = {
     "Academic Program - Race/Ethnicity": src.pages.academic_program_enrollment_race_ethnicity,
     "Admissions - Current Deposits": src.pages.admissions_current_deposits,
     "Admissions - Historic Data By Stage": src.pages.admissions_historic_data_by_stage,
+    "Program Review - Course Enrollment": src.pages.program_review_course_enrollment,
     "Registrar - Class Times": src.pages.registrar_class_times,
     "Registrar - Course Scheduling": src.pages.registrar_course_scheduling,
     "Registrar - Grade Distribution": src.pages.registrar_grade_distribution,
