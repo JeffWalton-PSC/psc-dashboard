@@ -34,7 +34,7 @@ def write():
         terms = st.multiselect(
             'Select term(s):',
             options=term_list,
-            default=[t for t in term_list if "Fall" in t],
+            default=term_list,
             )
         # order terms
         terms = [t for t in term_list if t in terms]
@@ -71,7 +71,7 @@ def write():
             col1, col2 = st.columns(2)
 
             c1 = alt.Chart(selected_df).mark_bar().encode(
-                x='yearterm:N',
+                x=alt.X('yearterm:N', sort=terms),
                 y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                 color='DEGREE:N',
                 tooltip=['yearterm', 'DEGREE', alt.Tooltip('sum(count):Q', title='students')],
@@ -88,7 +88,7 @@ def write():
             ).transform_calculate(
                 frac=alt.datum.c / alt.datum.total
             ).mark_bar().encode(
-                x='yearterm:N',
+                x=alt.X('yearterm:N', sort=terms),
                 y=alt.Y('c:Q', stack="normalize", axis=alt.Axis(format='.0%', title='percent')),
                 color='DEGREE:N',
                 tooltip=['yearterm', 'DEGREE', 

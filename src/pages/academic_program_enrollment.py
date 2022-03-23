@@ -65,6 +65,7 @@ def write():
                 index=['program'],
                 columns=['yearterm'],
             )[terms]
+            program_enrollment = program_enrollment.fillna(0)
 
             st.dataframe(program_enrollment)
 
@@ -76,7 +77,7 @@ def write():
             )
 
             c = alt.Chart(selected_df).mark_bar().encode(
-                x='yearterm:N',
+                x=alt.X('yearterm:N', sort=terms),
                 y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                 color='yearterm:N',
                 column='program:N',

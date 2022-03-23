@@ -65,14 +65,13 @@ def write():
                 index=['program', 'updated_ethnicity_code'],
                 columns=['yearterm'],
             )[terms]
+            program_enrollment = program_enrollment.fillna(0)
 
             st.dataframe(program_enrollment)
 
-            csv = convert_df(program_enrollment)
-
             st.download_button(
                 label="Download data as CSV",
-                data=csv,
+                data=convert_df(program_enrollment),
                 file_name=f'{program}_academic_program_enrollment_race_ethnicity.csv',
                 mime='text/csv',
             )
@@ -80,7 +79,7 @@ def write():
             col1, col2 = st.columns(2)
 
             c1 = alt.Chart(selected_df).mark_bar().encode(
-                x='yearterm:N',
+                x=alt.X('yearterm:N', sort=terms),
                 y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                 color=alt.Color('updated_ethnicity_code:N', legend=alt.Legend(title="Race/Ethnicity")),
                 column='program:N',
@@ -98,7 +97,7 @@ def write():
             ).transform_calculate(
                 frac=alt.datum.c / alt.datum.total
             ).mark_bar().encode(
-                x='yearterm:N',
+                x=alt.X('yearterm:N', sort=terms),
                 y=alt.Y('c:Q', stack="normalize", axis=alt.Axis(format='.0%', title='percent')),
                 color=alt.Color('updated_ethnicity_code:N', legend=alt.Legend(title="Race/Ethnicity")),
                 column='program:N',

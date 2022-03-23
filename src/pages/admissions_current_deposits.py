@@ -121,14 +121,13 @@ def write():
             index=['program'],
             columns=['yearterm'],
         )[yearterm_list]
+        program_deposits = program_deposits.fillna(0)
 
         st.dataframe(program_deposits)
 
-        csv = convert_df(program_deposits)
-
         st.download_button(
             label="Download data as CSV",
-            data=csv,
+            data=convert_df(program_deposits),
             file_name=f'{today_str}_program_deposits.csv',
             mime='text/csv',
         )

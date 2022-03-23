@@ -36,9 +36,7 @@ def write():
             'Select term(s):',
             options=term_list,
             default=term_list,
-            # default=[t for t in term_list if "Fall" in t],
             )
-        # order terms
         terms = [t for t in term_list if t in terms]
 
         if terms:
