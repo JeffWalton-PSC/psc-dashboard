@@ -57,6 +57,7 @@ def write():
                 index=['gender'],
                 columns=['yearterm'],
             )[terms]
+            enrollment = enrollment.fillna(0)
 
             st.dataframe(enrollment)
 

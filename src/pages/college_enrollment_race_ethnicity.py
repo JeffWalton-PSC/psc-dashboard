@@ -56,6 +56,7 @@ def write():
                 index=['updated_ethnicity_code'],
                 columns=['yearterm'],
             )[terms]
+            enrollment = enrollment.fillna(0)
 
             st.dataframe(enrollment)
 
