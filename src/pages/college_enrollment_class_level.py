@@ -78,13 +78,20 @@ def write():
             
             col1, col2 = st.columns(2)
 
-            c1 = alt.Chart(selected_df).transform_calculate(
+            c1 = alt.Chart(selected_df).transform_joinaggregate(
+                total='sum(count)',
+                groupby=['yearterm']  
+            ).transform_calculate(
                 order=f"indexof({class_level_sort}, datum.class_level)"
                 ).mark_bar().encode(
                     x=alt.X('yearterm:N', sort=terms),
                     y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                     color=alt.Color('class_level:N', sort=color_class_level_sort),
-                    tooltip=['yearterm', 'class_level', alt.Tooltip('sum(count):Q', title='students')],
+                    tooltip=['yearterm', 
+                        'class_level',
+                        alt.Tooltip('sum(count):Q', title='students'),
+                        alt.Tooltip('total:Q', title='total')
+                        ],
                     order='order:Q'
                 )
             with col1:
@@ -105,7 +112,8 @@ def write():
                 y=alt.Y('c:Q', stack="normalize", axis=alt.Axis(format='.0%', title='percent')),
                 color=alt.Color('class_level:N', sort=color_class_level_sort),
                 tooltip=['yearterm', 'class_level', 
-                    alt.Tooltip('c:Q', title='total students'),
+                    alt.Tooltip('c:Q', title='students'),
+                    alt.Tooltip('total:Q', title='total'),
                     alt.Tooltip('frac:Q', title='percent of students', format='.1%')],
                 order='order:Q'
             )
