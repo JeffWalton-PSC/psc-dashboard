@@ -11,6 +11,7 @@ import src.pages.academic_program_enrollment_race_ethnicity
 import src.pages.admissions_current_deposits
 import src.pages.admissions_historic_data_by_stage
 import src.pages.college_enrollment_total
+import src.pages.college_enrollment_historic
 import src.pages.college_enrollment_attend_status
 import src.pages.college_enrollment_class_level
 import src.pages.college_enrollment_degree
@@ -31,6 +32,7 @@ PAGES = {
     "Admissions - Current Deposits": src.pages.admissions_current_deposits,
     "Admissions - Historic Data By Stage": src.pages.admissions_historic_data_by_stage,
     "College Enrollment - Total": src.pages.college_enrollment_total,
+    "College Enrollment - Historic": src.pages.college_enrollment_historic,
     "College Enrollment - Attend Status": src.pages.college_enrollment_attend_status,
     "College Enrollment - Class Level": src.pages.college_enrollment_class_level,
     "College Enrollment - Degree": src.pages.college_enrollment_degree,
