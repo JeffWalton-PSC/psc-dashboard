@@ -35,9 +35,11 @@ def write():
         df = pc.add_col_yearterm_sort(df)
         df = df.sort_values('yearterm_sort').reset_index()
         # df = df.fillna(0)
-        df['bs_total'] = df['bs_new'].fillna(0) + df['bs_return'].fillna(0)
         df['as_total'] = df['as_new'].fillna(0) + df['as_return'].fillna(0)
+        df['bs_total'] = df['bs_new'].fillna(0) + df['bs_return'].fillna(0)
         df['ms_total'] = df['ms_total'].fillna(0)
+        df['total_headcount'] = df['as_total'] + df['bs_total'] + df['ms_total']
+        df['total_headcount'] = df['total_headcount'].astype('int')
         # st.dataframe(df)
 
         term_filter = st.selectbox(

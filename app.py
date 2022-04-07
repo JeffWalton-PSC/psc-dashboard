@@ -5,6 +5,7 @@ from streamlit import cli as stcli
 
 import src.pages
 import src.pages.home
+import src.pages.academic_department_credits
 import src.pages.academic_program_enrollment
 import src.pages.academic_program_enrollment_gender
 import src.pages.academic_program_enrollment_race_ethnicity
@@ -26,6 +27,7 @@ import src.pages.about
 
 PAGES = {
     "Home": src.pages.home,
+    "Academic Department - Credits": src.pages.academic_department_credits, 
     "Academic Program - Enrollment": src.pages.academic_program_enrollment, 
     "Academic Program - Gender": src.pages.academic_program_enrollment_gender,
     "Academic Program - Race/Ethnicity": src.pages.academic_program_enrollment_race_ethnicity,
