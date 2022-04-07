@@ -124,7 +124,7 @@ def write():
         year_start, year_end = st.select_slider(
             "Select range of years:",
             options=year_list,
-            value=('2015', current_year)
+            value=('2014', current_year)
         )
 
         if year_start and year_end:
@@ -150,7 +150,7 @@ def write():
             yt_sorter = lambda x: x.map(yt_sort_dict).fillna(x)
             yt_list = df_yt['yearterm'].unique().tolist()
             
-            # st.dataframe(df0)
+            st.dataframe(df0)
 
             st.write(f"#### PSC Total Credits by Term ({year_start}-{year_end})")
             df1 = (
@@ -212,7 +212,8 @@ def write():
 
             st.write(f"#### Department Credits by Academic Year ({year_start}-{year_end})")
             df3 = (
-                df0.groupby(["ay_label", "department"])["CREDIT"]
+                df0.loc[(df0['ay']>=year_start)]
+                .groupby(["ay_label", "department"])["CREDIT"]
                 .sum()
                 .reset_index()
                 .astype({'CREDIT': 'int'})
@@ -242,7 +243,7 @@ def write():
             c3 = alt.Chart(df3).transform_calculate(
                     PercentOfTotal="datum.dept_credit / datum.total_credit",
                 ).mark_bar().encode(
-                    x=alt.X('ay_label:N'),
+                    x=alt.X('ay_label:N', axis=alt.Axis(title='academic year')),
                     y=alt.Y('PercentOfTotal:Q', stack="normalize", axis=alt.Axis(format='.0%',title='percent of total credits')),
                     color=alt.Color(shorthand='department:N'),
                     tooltip=['ay_label', 'department', 
