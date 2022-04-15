@@ -9,6 +9,7 @@ import src.pages.academic_department_credits
 import src.pages.academic_program_enrollment
 import src.pages.academic_program_enrollment_gender
 import src.pages.academic_program_enrollment_race_ethnicity
+import src.pages.academic_program_graduates
 import src.pages.admissions_current_deposits
 import src.pages.admissions_historic_data_by_stage
 import src.pages.college_enrollment_total
@@ -31,6 +32,7 @@ PAGES = {
     "Academic Program - Enrollment": src.pages.academic_program_enrollment, 
     "Academic Program - Gender": src.pages.academic_program_enrollment_gender,
     "Academic Program - Race/Ethnicity": src.pages.academic_program_enrollment_race_ethnicity,
+    "Academic Program - Graduates": src.pages.academic_program_graduates,
     "Admissions - Current Deposits": src.pages.admissions_current_deposits,
     "Admissions - Historic Data By Stage": src.pages.admissions_historic_data_by_stage,
     "College Enrollment - Total": src.pages.college_enrollment_total,

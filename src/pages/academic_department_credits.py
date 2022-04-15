@@ -150,7 +150,7 @@ def write():
             yt_sorter = lambda x: x.map(yt_sort_dict).fillna(x)
             yt_list = df_yt['yearterm'].unique().tolist()
             
-            st.dataframe(df0)
+            # st.dataframe(df0)
 
             st.write(f"#### PSC Total Credits by Term ({year_start}-{year_end})")
             df1 = (
