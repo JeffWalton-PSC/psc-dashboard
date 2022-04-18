@@ -29,8 +29,8 @@ def grads_df(begin_date:dt.datetime) -> pd.DataFrame:
     transcriptdegree.loc[(transcriptdegree["DEGREE"].isin(["BA", "BS", "BPS"])), "degree_earned"] = "Bachelors"
     transcriptdegree.loc[(transcriptdegree["DEGREE"].isin(["AA", "AS", "AAS", "AOS"])), "degree_earned"] = "Associates"
     transcriptdegree.loc[(transcriptdegree["DEGREE"].isin(["CERTIF"])), "degree_earned"] = "Certificate"
-    transcriptdegree["grad_year"] = transcriptdegree["GRADUATION_DATE"].dt.year
-    transcriptdegree["grad_month"] = transcriptdegree["GRADUATION_DATE"].dt.month
+    transcriptdegree["grad_year"] = transcriptdegree["GRADUATION_DATE"].dt.year.astype(str)
+    transcriptdegree["grad_month"] = transcriptdegree["GRADUATION_DATE"].dt.month.astype(str)
 
     return transcriptdegree
 
@@ -84,7 +84,7 @@ def write():
 
             df = grads_df(start_date)
             # st.dataframe(df)
-            df0 = ( df.loc[(df['grad_year']>=int(year_start)) & (df['grad_year']<=int(year_end))]
+            df0 = ( df.loc[(df['grad_year']>=year_start) & (df['grad_year']<=year_end)]
                     .rename(columns={"CURRICULUM": "academic_program"})
             )
 
@@ -95,10 +95,10 @@ def write():
                 options=program_list,
                 default=program_list,
                 )
-            df0 = df0.loc[(df0['academic_program'].isin(programs))]
+            df1 = df0.loc[(df0['academic_program'].isin(programs))]
 
             st.write(f"#### Number of Graduates by Year ({year_start}-{year_end})")
-            df_yr = ( df0.groupby(['grad_year', 'academic_program' ])
+            df_yr = ( df1.groupby(['grad_year', 'academic_program' ])
                         .agg(
                             {'PEOPLE_CODE_ID': ['count',],
                             }
@@ -117,55 +117,57 @@ def write():
                 mime='text/csv',
             )
 
-            st.write(f"#### Number of Graduates by Year, Month ({year_start}-{year_end})")
-            df_ym = ( df0.groupby(['grad_year', 'grad_month', 'academic_program' ])
-                        .agg(
-                            {'PEOPLE_CODE_ID': ['count',],
-                            }
-                        )
-                        .reset_index()
-                        .droplevel(1, axis=1)
-                        .rename(
-                            columns={'PEOPLE_CODE_ID': 'graduates'}
-                        )
-            )
-            st.dataframe(df_ym)
-            st.download_button(
-                label="Download data as CSV",
-                data=convert_df(df_ym),
-                file_name=f"{year_start}-{year_end}_graduates_by_year-month.csv",
-                mime='text/csv',
-            )
+            # st.write(f"#### Number of Graduates by Year, Month ({year_start}-{year_end})")
+            # df_ym = ( df1.groupby(['grad_year', 'grad_month', 'academic_program' ])
+            #             .agg(
+            #                 {'PEOPLE_CODE_ID': ['count',],
+            #                 }
+            #             )
+            #             .reset_index()
+            #             .droplevel(1, axis=1)
+            #             .rename(
+            #                 columns={'PEOPLE_CODE_ID': 'graduates'}
+            #             )
+            # )
+            # st.dataframe(df_ym)
+            # st.download_button(
+            #     label="Download data as CSV",
+            #     data=convert_df(df_ym),
+            #     file_name=f"{year_start}-{year_end}_graduates_by_year-month.csv",
+            #     mime='text/csv',
+            # )
 
             c = alt.Chart(df_yr).mark_bar().encode(
                 x=alt.X('grad_year:N', title='year'),
                 y=alt.Y('sum(graduates):Q', axis=alt.Axis(title='number of graduates')),
                 # color='academic_program:N',
                 column=alt.Column('academic_program:N', title='academic program'),
-                tooltip=[alt.Tooltip('grad_year:N', title='year'),
+                tooltip=[
                         alt.Tooltip('academic_program:N', title='program'), 
+                        alt.Tooltip('grad_year:N', title='year'),
                         alt.Tooltip('sum(graduates):Q', title='graduates')],
             )
             st.altair_chart(c)
 
             degree_sort = ['Masters', 'Grad Cert', 'Bachelors', 'Associates', 'Certificate']
 
-            st.write(f"#### PSC Total Graduates ({year_start}-{year_end})")
-            df1 = (
-                df0.groupby(["grad_year", "degree_earned"])["PEOPLE_CODE_ID"].count()
+            st.write(f"#### Total Graduates ({year_start}-{year_end})")
+            st.write(f"Selected Programs: ({programs})")
+            df2 = (
+                df1.groupby(["grad_year", "degree_earned"])["PEOPLE_CODE_ID"].count()
                 .reset_index()
                 # .droplevel(1, axis=1)
                 .rename(columns={'PEOPLE_CODE_ID': 'graduates'})
             )
-            st.dataframe(df1)
+            st.dataframe(df2)
             st.download_button(
                 label="Download data as CSV",
-                data=convert_df(df1),
+                data=convert_df(df2),
                 file_name=f"{year_start}-{year_end}_total_grads.csv",
                 mime='text/csv',
             )
 
-            c1 = alt.Chart(df1.reset_index()).mark_bar().encode(
+            c1 = alt.Chart(df2.reset_index()).mark_bar().encode(
                 x=alt.X('grad_year:N'),
                 y=alt.Y('graduates:Q', axis=alt.Axis(title='number of graduates')),
                 color=alt.Color(shorthand='degree_earned:N', title='degree', sort=degree_sort),
@@ -177,3 +179,43 @@ def write():
             )
             st.altair_chart(c1)
 
+            st.markdown("---")
+            st.write(f"### PSC Total Graduates ({year_start}-{year_end})")
+            # st.dataframe(df0)
+            df3 = ( df0[['PEOPLE_CODE_ID', 'grad_year', 'degree_earned', ]]
+                        .groupby(
+                            ['grad_year', 'degree_earned']
+                        )
+                        .count()
+                        .reset_index()
+                        .rename(
+                            columns= {
+                                'PEOPLE_CODE_ID': 'graduates'
+                            }
+                        )
+            )
+            st.dataframe(df3)
+            st.download_button(
+                label="Download data as CSV",
+                data=convert_df(df3),
+                file_name=f"{year_start}-{year_end}_PSC_total_grads.csv",
+                mime='text/csv',
+            )
+            c2 = alt.Chart(df3).transform_joinaggregate(
+                total='sum(graduates)',
+                groupby=['grad_year']
+            ).transform_calculate(
+                percent=alt.datum.graduates / alt.datum.total
+            ).mark_bar().encode(
+                x=alt.X('grad_year:N'),
+                y=alt.Y('graduates:Q', axis=alt.Axis(title='number of graduates')),
+                color=alt.Color(shorthand='degree_earned:N', title='degree', sort=degree_sort),
+                order=alt.Order('color_degree_earned_sort_index:Q', sort='descending'),
+                tooltip=[alt.Tooltip('grad_year:N', title='year'), 
+                        alt.Tooltip('degree_earned:N', title='degree'),
+                        alt.Tooltip('graduates:Q', title='graduates'),
+                        alt.Tooltip('total:Q', title='total'),
+                        alt.Tooltip('percent:Q', title='percent', format='.1%')
+                ],
+            )
+            st.altair_chart(c2)
