@@ -237,7 +237,7 @@ def write():
             st.download_button(
                 label="Download data as CSV",
                 data=convert_df(df3),
-                file_name=f"{year_start}-{year_end}_term_department_credits.csv",
+                file_name=f"{year_start}-{year_end}_ay_department_credits.csv",
                 mime='text/csv',
             )
             c3 = alt.Chart(df3).transform_calculate(
