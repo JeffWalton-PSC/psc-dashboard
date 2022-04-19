@@ -13,13 +13,13 @@ def convert_df(df):
 
 
 @st.cache
-def course_df(start_year:str, end_year:str) -> pd.DataFrame:
+def course_df(start_year:str) -> pd.DataFrame:
 
     sections = pc.select("SECTIONS", 
         fields=['ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION', 'EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION',
             'EVENT_MED_NAME', 'EVENT_LONG_NAME', 'EVENT_STATUS', 'PROGRAM', 'COLLEGE', 'DEPARTMENT', 'CURRICULUM',
             'CREDITS', ],
-        where=f"ACADEMIC_YEAR>='{int(start_year)}' and ACADEMIC_YEAR<='{int(end_year)}' " +
+        where=f"ACADEMIC_YEAR>='{int(start_year)}' " +
             "and ACADEMIC_TERM in ('FALL', '10-Week_1', '10-Week_2', 'SPRING', 'SUMMER', '10-Week_3', '10-Week_4' ) " +
             "and ACADEMIC_SESSION in ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP', 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B' ) " +
             "and EVENT_SUB_TYPE NOT in ('ACE', 'ADV', 'CELL', 'STAB') " +
@@ -58,7 +58,7 @@ def course_df(start_year:str, end_year:str) -> pd.DataFrame:
         fields=['PEOPLE_CODE_ID', 'ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION',
             'EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION', 'CREDIT',
             ],
-        where=f"ACADEMIC_YEAR>='{int(start_year)}' and ACADEMIC_YEAR<='{int(end_year)}' " +
+        where=f"ACADEMIC_YEAR>='{int(start_year)}' " +
             "and ACADEMIC_TERM in ('FALL', '10-Week_1', '10-Week_2', 'SPRING', 'SUMMER', '10-Week_3', '10-Week_4' ) " +
             "and ACADEMIC_SESSION in ('MAIN', 'CULN', 'EXT', 'FNRR', 'HEOP', 'SLAB', 'BLOCK A', 'BLOCK AB', 'BLOCK B' ) " +
             "and EVENT_SUB_TYPE NOT IN ('ADV') " +
@@ -79,6 +79,48 @@ def course_df(start_year:str, end_year:str) -> pd.DataFrame:
     df = df.loc[~(df["EVENT_ID"].str.contains("REG", case=False)) & ~(df["EVENT_ID"].str.contains("STDY", case=False))]
     df = pc.add_col_yearterm_sort(df)
 
+    academic = pc.select("ACADEMIC", 
+        fields=['PEOPLE_CODE_ID', 'ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION', 
+            'PROGRAM', 'DEGREE', 'CURRICULUM', 
+            'COLLEGE', 'DEPARTMENT', 'CREDITS',
+            ],
+        where=f"ACADEMIC_YEAR>='{int(start_year)}' " +
+            "and ACADEMIC_TERM IN ('FALL', '10-Week_1', '10-Week_2', 'SPRING', 'SUMMER', '10-Week_3', '10-Week_4' ) " +
+            "and ACADEMIC_SESSION='' and PRIMARY_FLAG='Y' " +
+            "and CURRICULUM NOT IN ('ADVST') and CREDITS > 0 ", 
+        )
+    academic['ACADEMIC_TERM'] = academic['ACADEMIC_TERM'].str.upper()
+    academic['ACADEMIC_SESSION'] = academic['ACADEMIC_SESSION'].str.upper()
+
+    keep_flds = [
+        "ACADEMIC_YEAR",
+        "ACADEMIC_TERM",
+        "ACADEMIC_SESSION",
+        "PEOPLE_CODE_ID",
+        "COLLEGE",
+        "CURRICULUM",
+    ]
+    academic = ( academic.loc[:, keep_flds]
+        .sort_values(keep_flds)
+        .drop_duplicates(keep_flds, keep="last", )
+        .rename(
+            columns={
+                "COLLEGE": "stu_dept",
+                "CURRICULUM": "stu_program",
+                }
+                )
+        .drop(
+            ['ACADEMIC_SESSION'],
+            axis='columns',
+        )
+    )
+
+    df = pd.merge(
+        df,
+        academic,
+        on=["PEOPLE_CODE_ID", "ACADEMIC_YEAR", "ACADEMIC_TERM"],
+        how="left",
+    )
 
     return df
 
@@ -124,17 +166,21 @@ def write():
         year_start, year_end = st.select_slider(
             "Select range of years:",
             options=year_list,
-            value=('2014', current_year)
+            value=('2016', current_year)
         )
 
         if year_start and year_end:
 
-            df = course_df(start_year, current_year)
+            df = course_df(start_year)
             df0 = ( df.loc[(df['ACADEMIC_YEAR']>=year_start) & (df['ACADEMIC_YEAR']<=year_end)]
                     .rename(columns={"crs_dept": "department"})
             )
             df0['department'] = df0['department'].fillna('unlabeled')
             df0.loc[(df0['department']==''), 'department'] = 'unlabeled'
+            df0['stu_dept'] = df0['stu_dept'].fillna('unlabeled')
+            df0.loc[(df0['stu_dept']==''), 'stu_dept'] = 'unlabeled'
+            df0.loc[(df0['stu_dept']==' '), 'stu_dept'] = 'unlabeled'
+            # st.dataframe(df0)
 
             df_yt = ( df0.groupby(['ACADEMIC_YEAR', 'ACADEMIC_TERM'])
                         .agg(
@@ -252,3 +298,64 @@ def write():
                         alt.Tooltip('PercentOfTotal:Q', title='pct of total', format='.1%')],
                 )
             st.altair_chart(c3)
+
+
+            st.write(f"#### Department Credits by Student Department ({year_start}-{year_end})")
+            df5 = (
+                df0.groupby(["ay_label", "department", "stu_dept"])["CREDIT"].sum()
+                .reset_index()
+                .astype({'CREDIT': 'int'})
+                .rename(columns={"CREDIT": "stu_credit"})
+                .sort_values(['ay_label'])
+            )
+            # st.dataframe(df5)
+            df6 = df3.merge(
+                df5,
+                how='left',
+                on=['ay_label', 'department'],
+            ).loc[:,['ay_label', 'department', 'dept_credit', 'stu_dept', 'stu_credit' ]]
+            df6['stu_pct'] = df6['stu_credit'] / df6['dept_credit'] * 100.0
+            # st.dataframe(df6)
+            st.write("##### Department Teaching - Credits")
+            st.write("Teaching Department in rows; Student Departments in columns.")
+            df6_pivot = ( df6.pivot(index=['ay_label', 'department'], columns='stu_dept', values='stu_credit')
+                            .fillna(0)
+                            .astype('int')
+            )
+            st.dataframe(df6_pivot)
+            st.download_button(
+                label="Download data as CSV",
+                data=convert_df(df6_pivot),
+                file_name=f"{year_start}-{year_end}_ay_department_student_credits.csv",
+                mime='text/csv',
+            )
+            st.write("##### Department Teaching - Percentge")
+            st.write("Teaching Department in rows; Student Departments in columns.")
+            df6_pivot_pct = ( df6.pivot(index=['ay_label', 'department'], columns='stu_dept', values='stu_pct')
+                            .fillna(0)
+                            # .astype('int')
+            )
+            st.dataframe(df6_pivot_pct)
+            st.download_button(
+                label="Download data as CSV",
+                data=convert_df(df6_pivot_pct),
+                file_name=f"{year_start}-{year_end}_ay_department_student_credits_pct.csv",
+                mime='text/csv',
+            )
+            c4 = alt.Chart(df6).transform_calculate(
+                    PercentOfTotal="datum.stu_credit / datum.dept_credit",
+                ).mark_bar().encode(
+                    x=alt.X('stu_pct:Q', stack="normalize", axis=alt.Axis(title='student department')),
+                    y=alt.Y('department:N', axis=alt.Axis(title='teaching department')),
+                    color=alt.Color(shorthand='stu_dept:N'),
+                    row='ay_label:N',
+                    tooltip=[
+                        alt.Tooltip('ay_label', title='academic year'), 
+                        alt.Tooltip('department', title='department'), 
+                        alt.Tooltip('dept_credit:Q', title='dept credit'), 
+                        alt.Tooltip('stu_dept:N', title='student dept'), 
+                        alt.Tooltip('stu_credit:Q', title='student credit'),
+                        alt.Tooltip('PercentOfTotal:Q', title='pct of dept', format='.1%'),
+                        ],
+                )
+            st.altair_chart(c4)
