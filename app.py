@@ -6,6 +6,7 @@ from streamlit import cli as stcli
 import src.pages
 import src.pages.home
 import src.pages.academic_department_credits
+import src.pages.academic_department_enrollment
 import src.pages.academic_program_enrollment
 import src.pages.academic_program_enrollment_gender
 import src.pages.academic_program_enrollment_race_ethnicity
@@ -19,6 +20,7 @@ import src.pages.college_enrollment_class_level
 import src.pages.college_enrollment_degree
 import src.pages.college_enrollment_gender
 import src.pages.college_enrollment_race_ethnicity
+import src.pages.faculty_teaching
 import src.pages.program_review_course_enrollment
 import src.pages.registrar_class_times
 import src.pages.registrar_course_scheduling
@@ -29,6 +31,7 @@ import src.pages.about
 PAGES = {
     "Home": src.pages.home,
     "Academic Department - Credits": src.pages.academic_department_credits, 
+    "Academic Department - Enrollment": src.pages.academic_department_enrollment, 
     "Academic Program - Enrollment": src.pages.academic_program_enrollment, 
     "Academic Program - Gender": src.pages.academic_program_enrollment_gender,
     "Academic Program - Race/Ethnicity": src.pages.academic_program_enrollment_race_ethnicity,
@@ -42,6 +45,7 @@ PAGES = {
     "College Enrollment - Degree": src.pages.college_enrollment_degree,
     "College Enrollment - Gender": src.pages.college_enrollment_gender,
     "College Enrollment - Race/Ethnicity": src.pages.college_enrollment_race_ethnicity,
+    "Faculty - Teaching": src.pages.faculty_teaching, 
     "Program Review - Course Enrollment": src.pages.program_review_course_enrollment,
     "Registrar - Class Times": src.pages.registrar_class_times,
     "Registrar - Course Scheduling": src.pages.registrar_course_scheduling,
