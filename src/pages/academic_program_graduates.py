@@ -83,13 +83,11 @@ def write():
         if year_start and year_end:
 
             df = grads_df(start_date)
-            # st.dataframe(df)
             df0 = ( df.loc[(df['grad_year']>=year_start) & (df['grad_year']<=year_end)]
                     .rename(columns={"CURRICULUM": "academic_program"})
             )
 
             program_list = sorted(df0['academic_program'].unique())
-            # st.write(program_list)
             programs = st.multiselect(
                 'Select academic program(s):',
                 options=program_list,
@@ -116,26 +114,6 @@ def write():
                 file_name=f"{year_start}-{year_end}_graduates_by_year.csv",
                 mime='text/csv',
             )
-
-            # st.write(f"#### Number of Graduates by Year, Month ({year_start}-{year_end})")
-            # df_ym = ( df1.groupby(['grad_year', 'grad_month', 'academic_program' ])
-            #             .agg(
-            #                 {'PEOPLE_CODE_ID': ['count',],
-            #                 }
-            #             )
-            #             .reset_index()
-            #             .droplevel(1, axis=1)
-            #             .rename(
-            #                 columns={'PEOPLE_CODE_ID': 'graduates'}
-            #             )
-            # )
-            # st.dataframe(df_ym)
-            # st.download_button(
-            #     label="Download data as CSV",
-            #     data=convert_df(df_ym),
-            #     file_name=f"{year_start}-{year_end}_graduates_by_year-month.csv",
-            #     mime='text/csv',
-            # )
 
             c = alt.Chart(df_yr).mark_bar().encode(
                 x=alt.X('grad_year:N', title='year'),
@@ -181,7 +159,6 @@ def write():
 
             st.markdown("---")
             st.write(f"### PSC Total Graduates ({year_start}-{year_end})")
-            # st.dataframe(df0)
             df3 = ( df0[['PEOPLE_CODE_ID', 'grad_year', 'degree_earned', ]]
                         .groupby(
                             ['grad_year', 'degree_earned']

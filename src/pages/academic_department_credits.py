@@ -71,7 +71,7 @@ def course_df(start_year:str) -> pd.DataFrame:
     df = pd.merge(
         transcriptdetail,
         sections,
-        on=["EVENT_ID", "ACADEMIC_YEAR", "ACADEMIC_TERM"],
+        on=["EVENT_ID", "ACADEMIC_YEAR", "ACADEMIC_TERM", 'ACADEMIC_SESSION', ],
         how="left",
     )
 
