@@ -159,7 +159,11 @@ def write():
 
         st.write(f"### One Term")
 
-        yearterm = st.selectbox(label="Selected term:", options=term_list, index=term_list.index(current_yt))
+        if current_yt in term_list:
+            ind = term_list.index(current_yt)
+        else:
+            ind = 0
+        yearterm = st.selectbox(label="Selected term:", options=term_list, index=ind)
 
         term_df = term_df.set_index('yearterm')
         year = term_df.loc[[yearterm]]['ACADEMIC_YEAR'][0]
