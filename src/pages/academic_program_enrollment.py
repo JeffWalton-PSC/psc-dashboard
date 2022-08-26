@@ -6,6 +6,8 @@ from pathlib import Path
 import src.pages.components
 
 
+# begin_year = '2014'
+
 @st.cache
 def convert_df(df):
     # IMPORTANT: Cache the conversion to prevent computation on every rerun
@@ -30,8 +32,9 @@ def write():
             pd.read_feather(data_file)
             .sort_values(['yearterm_sort', 'curriculum', 'people_code_id'])
         )
+        df['curriculum'] = df['curriculum'].fillna('UNDM')
 
-        program_list = sorted(df['curriculum'].unique())
+        program_list = sorted(list(df['curriculum'].unique()))
         programs = st.multiselect(
             'Select academic program(s):',
             options=program_list,
@@ -39,6 +42,7 @@ def write():
             )
 
         term_list = df.loc[(df['curriculum'].isin(programs)), :]['current_yearterm'].unique()
+        # term_list = [t for t in term_list if ("Fall" in t) and (t >= begin_year)]  # remove restrictions after cleaning data
         terms = st.multiselect(
             'Select term(s):',
             options=term_list,

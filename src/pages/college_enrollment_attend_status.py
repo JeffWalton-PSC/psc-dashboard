@@ -6,6 +6,8 @@ from pathlib import Path
 import src.pages.components
 
 
+begin_year = '2019'
+
 @st.cache
 def convert_df(df):
     return df.to_csv().encode('utf-8')
@@ -31,7 +33,7 @@ def write():
         )
 
         term_list = df['current_yearterm'].unique()
-        term_list = [t for t in term_list if ("Fall" in t) and (t > '2019')]  # remove restrictions after cleaning COLLEGE_ATTEND data
+        term_list = [t for t in term_list if ("Fall" in t) and (t >= begin_year)]  # remove restrictions after cleaning COLLEGE_ATTEND data
         terms = st.multiselect(
             'Select term(s):',
             options=term_list,
