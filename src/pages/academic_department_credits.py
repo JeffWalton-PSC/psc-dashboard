@@ -180,7 +180,6 @@ def write():
             df0['stu_dept'] = df0['stu_dept'].fillna('unlabeled')
             df0.loc[(df0['stu_dept']==''), 'stu_dept'] = 'unlabeled'
             df0.loc[(df0['stu_dept']==' '), 'stu_dept'] = 'unlabeled'
-
             # st.dataframe(df0)
 
             df_yt = ( df0.groupby(['ACADEMIC_YEAR', 'ACADEMIC_TERM'])
@@ -330,7 +329,7 @@ def write():
                 file_name=f"{year_start}-{year_end}_ay_department_student_credits.csv",
                 mime='text/csv',
             )
-            st.write("##### Department Teaching - Percentage")
+            st.write("##### Department Teaching - Percentge")
             st.write("Teaching Department in rows; Student Departments in columns.")
             df6_pivot_pct = ( df6.pivot(index=['ay_label', 'department'], columns='stu_dept', values='stu_pct')
                             .fillna(0)
