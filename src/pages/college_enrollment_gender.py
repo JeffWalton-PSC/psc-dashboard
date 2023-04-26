@@ -6,22 +6,19 @@ from pathlib import Path
 import src.pages.components
 
 
-# begin_year = '2014'
-
 @st.cache
 def convert_df(df):
-    # IMPORTANT: Cache the conversion to prevent computation on every rerun
     return df.to_csv().encode('utf-8')
 
 
 def write():
     """Used to write the page in the app.py file"""
-    with st.spinner("Loading Academic Program Enrollment - Gender ..."):
+    with st.spinner("Loading College Enrollment - Gender ..."):
         src.pages.components.logo()
         st.write(
             """
-            ## Academic Program Enrollment - Gender
-            Select the academic program and term(s) you would like to see.
+            ## College Enrollment - Gender
+           
 """
         )
 
@@ -30,53 +27,44 @@ def write():
 
         df = (
             pd.read_feather(data_file)
-            .sort_values(['yearterm_sort', 'curriculum', 'gender', 'people_code_id'])
+            .sort_values(['yearterm_sort', 'gender', 'people_code_id'])
         )
-        df['curriculum'] = df['curriculum'].fillna('UNDM')
 
-        program_list = sorted(list(df['curriculum'].unique()))
-        program = st.selectbox(
-            'Select academic program:',
-            options=program_list,
-            index=0,
-            )
-
-        term_list = df.loc[(df['curriculum']==program), :]['current_yearterm'].unique()
-        # term_list = [t for t in term_list if ("Fall" in t) and (t >= begin_year)]  # remove restrictions after cleaning data
+        term_list = df['current_yearterm'].unique()
         terms = st.multiselect(
             'Select term(s):',
             options=term_list,
-            default=[t for t in term_list if "Fall" in t],
+            default=term_list,
             )
         # order terms
         terms = [t for t in term_list if t in terms]
 
-        if program and terms:
+        if terms:
             selected_df = (
-                df.loc[(df['curriculum']==program) & (df['current_yearterm'].isin(terms)), 
-                ['current_yearterm', 'yearterm_sort', 'curriculum', 'gender', 'people_code_id']]
-                .groupby(['yearterm_sort', 'current_yearterm', 'curriculum', 'gender'])
+                df.loc[(df['current_yearterm'].isin(terms)), 
+                ['current_yearterm', 'yearterm_sort', 'gender', 'people_code_id']]
+                .groupby(['yearterm_sort', 'current_yearterm', 'gender'])
                 .count()
                 .reset_index()
-                .rename(columns={'people_code_id': 'count', 'current_yearterm': 'yearterm', 'curriculum': 'program'})
-                .sort_values(['yearterm_sort', 'program', 'gender'])
+                .rename(columns={'people_code_id': 'count', 'current_yearterm': 'yearterm'})
+                .sort_values(['yearterm_sort', 'gender'])
                 .astype({'count': 'UInt16'})
             )
 
-            program_enrollment = pd.pivot(
+            enrollment = pd.pivot(
                 selected_df,
                 values='count',
-                index=['program', 'gender'],
+                index=['gender'],
                 columns=['yearterm'],
             )[terms]
-            program_enrollment = program_enrollment.fillna(0)
+            enrollment = enrollment.fillna(0)
 
-            st.dataframe(program_enrollment)
+            st.dataframe(enrollment)
 
             st.download_button(
                 label="Download data as CSV",
-                data=convert_df(program_enrollment),
-                file_name=f'{program}_academic_program_enrollment_gender.csv',
+                data=convert_df(enrollment),
+                file_name=f'college_enrollment_gender.csv',
                 mime='text/csv',
             )
 
@@ -89,10 +77,8 @@ def write():
                 x=alt.X('yearterm:N', sort=terms),
                 y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                 color='gender:N',
-                column='program:N',
-                tooltip=['program',
-                    'yearterm',
-                    'gender',
+                tooltip=['yearterm', 
+                    'gender', 
                     alt.Tooltip('sum(count):Q', title='students'),
                     alt.Tooltip('total:Q', title='total')
                     ],
@@ -102,18 +88,17 @@ def write():
             
             c2 = alt.Chart(selected_df).transform_aggregate(
                 c='sum(count)',
-                groupby=['program', 'yearterm', 'gender']
+                groupby=['yearterm', 'gender']
             ).transform_joinaggregate(
                 total='sum(c)',
-                groupby=['program', 'yearterm']  
+                groupby=['yearterm']  
             ).transform_calculate(
                 frac=alt.datum.c / alt.datum.total
             ).mark_bar().encode(
                 x=alt.X('yearterm:N', sort=terms),
                 y=alt.Y('c:Q', stack="normalize", axis=alt.Axis(format='.0%', title='percent')),
                 color='gender:N',
-                column='program:N',
-                tooltip=['program', 'yearterm', 'gender', 
+                tooltip=['yearterm', 'gender', 
                     alt.Tooltip('c:Q', title='students'),
                     alt.Tooltip('total:Q', title='total'),
                     alt.Tooltip('frac:Q', title='percent of students', format='.1%')],

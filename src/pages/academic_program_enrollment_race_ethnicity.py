@@ -6,6 +6,8 @@ from pathlib import Path
 import src.pages.components
 
 
+# begin_year = '2014'
+
 @st.cache
 def convert_df(df):
     # IMPORTANT: Cache the conversion to prevent computation on every rerun
@@ -23,15 +25,16 @@ def write():
 """
         )
 
-        data_path = Path(r"\\psc-data\E\Data\Census\CensusDatabase")
+        data_path = Path(r"F:\Data\Census\CensusDatabase")
         data_file = data_path / "census_db.arr"
 
         df = (
             pd.read_feather(data_file)
             .sort_values(['yearterm_sort', 'curriculum', 'updated_ethnicity_code', 'people_code_id'])
         )
+        df['curriculum'] = df['curriculum'].fillna('UNDM')
 
-        program_list = sorted(df['curriculum'].unique())
+        program_list = sorted(list(df['curriculum'].unique()))
         program = st.selectbox(
             'Select academic program:',
             options=program_list,
@@ -39,6 +42,7 @@ def write():
             )
 
         term_list = df.loc[(df['curriculum']==program), :]['current_yearterm'].unique()
+        # term_list = [t for t in term_list if ("Fall" in t) and (t >= begin_year)]  # remove restrictions after cleaning data
         terms = st.multiselect(
             'Select term(s):',
             options=term_list,
@@ -65,26 +69,33 @@ def write():
                 index=['program', 'updated_ethnicity_code'],
                 columns=['yearterm'],
             )[terms]
+            program_enrollment = program_enrollment.fillna(0)
 
             st.dataframe(program_enrollment)
 
-            csv = convert_df(program_enrollment)
-
             st.download_button(
                 label="Download data as CSV",
-                data=csv,
+                data=convert_df(program_enrollment),
                 file_name=f'{program}_academic_program_enrollment_race_ethnicity.csv',
                 mime='text/csv',
             )
 
             col1, col2 = st.columns(2)
 
-            c1 = alt.Chart(selected_df).mark_bar().encode(
-                x='yearterm:N',
+            c1 = alt.Chart(selected_df).transform_joinaggregate(
+                total='sum(count)',
+                groupby=['yearterm']  
+            ).mark_bar().encode(
+                x=alt.X('yearterm:N', sort=terms),
                 y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of students')),
                 color=alt.Color('updated_ethnicity_code:N', legend=alt.Legend(title="Race/Ethnicity")),
                 column='program:N',
-                tooltip=['program', 'yearterm', 'updated_ethnicity_code', alt.Tooltip('sum(count):Q', title='students')],
+                tooltip=['program',
+                    'yearterm', 
+                    'updated_ethnicity_code',
+                    alt.Tooltip('sum(count):Q', title='students'),
+                    alt.Tooltip('total:Q', title='total')
+                    ],
             )
             with col1:
                 st.altair_chart(c1)
@@ -98,13 +109,14 @@ def write():
             ).transform_calculate(
                 frac=alt.datum.c / alt.datum.total
             ).mark_bar().encode(
-                x='yearterm:N',
-                y=alt.Y('c:Q', stack="normalize", axis=alt.Axis(format='%', title='percent')),
+                x=alt.X('yearterm:N', sort=terms),
+                y=alt.Y('c:Q', stack="normalize", axis=alt.Axis(format='.0%', title='percent')),
                 color=alt.Color('updated_ethnicity_code:N', legend=alt.Legend(title="Race/Ethnicity")),
                 column='program:N',
                 tooltip=['program', 'yearterm', 'updated_ethnicity_code', 
-                    alt.Tooltip('c:Q', title='total students'),
-                    alt.Tooltip('frac:Q', title='percent of students', format='.0%')],
+                    alt.Tooltip('c:Q', title='students'),
+                    alt.Tooltip('total:Q', title='total'),
+                    alt.Tooltip('frac:Q', title='percent of students', format='.1%')],
             )
 
             with col2:

@@ -9,7 +9,7 @@ import src.pages.components
 # local connection information
 import local_db
 
-WEEKS_FOR_PREVIOUS_DEPOSITS = 3
+WEEKS_FOR_PREVIOUS_DEPOSITS = 52
 
 @st.cache
 def convert_df(df):
@@ -33,17 +33,20 @@ def write():
         today = dt.date.today()
         today_str = today.strftime("%Y%m%d")
 
+        st.write(f"Data for prior and current semesters are 'total' deposits; data for future semesters are 'current' deposits for today ({today_str}).")
+
         sql_str = f"""
             SELECT *
             FROM dbo.[ACADEMICCALENDAR]
             WHERE [ACADEMICCALENDAR].[END_DATE] > '{today - dt.timedelta(weeks=WEEKS_FOR_PREVIOUS_DEPOSITS)}'
+              AND [ACADEMICCALENDAR].[ACADEMIC_TERM] IN ('FALL', 'SPRING', 'SUMMER')
             """
         df_cal = pd.read_sql_query(sql_str, connection)
         yearterm_sort = ( lambda r: 
             r['ACADEMIC_YEAR'] + '01' if r['ACADEMIC_TERM']=='SPRING' else
-            r['ACADEMIC_YEAR'] + '02' if r['ACADEMIC_TERM']=='SUMMER' else
-            r['ACADEMIC_YEAR'] + '03' if r['ACADEMIC_TERM']=='FALL' else
-            r['ACADEMIC_YEAR'] + '00'
+            (r['ACADEMIC_YEAR'] + '02' if r['ACADEMIC_TERM']=='SUMMER' else
+            (r['ACADEMIC_YEAR'] + '03' if r['ACADEMIC_TERM']=='FALL' else
+            r['ACADEMIC_YEAR'] + '00'))
         )
         df_cal['yearterm_sort'] = df_cal.apply(yearterm_sort, axis=1)
 
@@ -55,7 +58,7 @@ def write():
                 .sort_values(['yearterm_sort', 'END_DATE', ])
                 .drop_duplicates(['yearterm_sort'], keep='last')
                 )
-
+        
         year_list = sorted(df_cal['ACADEMIC_YEAR'].unique())
         term_list = sorted(df_cal['ACADEMIC_TERM'].unique())
         yearterm_list = df_cal['yearterm'].unique()
@@ -76,7 +79,7 @@ def write():
             [ACADEMIC].[ADMIT_YEAR] = [ACADEMIC].[ACADEMIC_YEAR]  AND
             [ACADEMIC].[ADMIT_TERM] = [ACADEMIC].[ACADEMIC_TERM]  AND
             [ACADEMIC].[ACADEMIC_YEAR] IN {tuple(year_list)}  AND
-            [ACADEMIC].[ACADEMIC_TERM] IN {tuple(term_list)}  AND
+            [ACADEMIC].[ACADEMIC_TERM] IN ('FALL', 'SPRING', 'SUMMER') AND
             [ACADEMIC].[APP_STATUS] = N'500'  AND
             [ACADEMIC].[ACADEMIC_SESSION] = N''   AND
             (ACADEMIC.APP_DECISION = 'DPAC' OR
@@ -107,24 +110,24 @@ def write():
             .count()
             .reset_index()
             .rename(columns={'PEOPLE_CODE_ID': 'count', 'CURRICULUM': 'program'})
-            .sort_values(['yearterm_sort', 'program'])
+            .sort_values(['yearterm_sort', 'DEGREE', 'program'])
             .astype({'count': 'UInt16'})
         )
-
+        yearterm_list = [ yt for yt in yearterm_list if (yt in df['yearterm'].unique())]
+        
         program_deposits = pd.pivot(
             df,
             values='count',
             index=['program'],
             columns=['yearterm'],
         )[yearterm_list]
+        program_deposits = program_deposits.fillna(0)
 
         st.dataframe(program_deposits)
 
-        csv = convert_df(program_deposits)
-
         st.download_button(
             label="Download data as CSV",
-            data=csv,
+            data=convert_df(program_deposits),
             file_name=f'{today_str}_program_deposits.csv',
             mime='text/csv',
         )
@@ -140,10 +143,11 @@ def write():
             .astype({'deposits': 'UInt16'})
         )
         st.markdown("### Total Deposits")
+        st.write(f"Data for prior and current semesters are 'total' deposits; data for future semesters are 'current' deposits for today ({today_str}).")
         st.dataframe(program_deposits_total)
 
         c = alt.Chart(df).mark_bar().encode(
-            x='yearterm:N',
+            x=alt.X('yearterm:N', sort=yearterm_list),
             y=alt.Y('sum(count):Q', axis=alt.Axis(title='deposits')),
             # color=alt.Color('program:N', legend=alt.Legend(title="program")),
             # tooltip=['yearterm', 'program', alt.Tooltip('sum(count):Q', title='deposits')],
