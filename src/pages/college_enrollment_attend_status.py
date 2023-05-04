@@ -8,7 +8,7 @@ import src.pages.components
 
 begin_year = '2019'
 
-@st.cache
+@st.cache_data
 def convert_df(df):
     return df.to_csv().encode('utf-8')
 

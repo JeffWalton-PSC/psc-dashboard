@@ -11,7 +11,7 @@ import powercampus as pc
 
 start_year = '2010-11'
 
-@st.cache
+@st.cache_data
 def convert_df(df):
     return df.to_csv().encode('utf-8')
 

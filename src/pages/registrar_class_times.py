@@ -7,12 +7,12 @@ import src.pages.components
 # PowerCampus utilities
 import powercampus as pc
 
-@st.cache
+@st.cache_data
 def convert_df(df):
     return df.to_csv(index=False).encode('utf-8')
 
 
-@st.cache
+@st.cache_data
 def class_df(start_year):
     sections = pc.select("SECTIONS", 
         fields=['ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION', 'EVENT_ID', 'EVENT_SUB_TYPE', 'SECTION',

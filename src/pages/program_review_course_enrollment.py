@@ -9,12 +9,12 @@ import src.pages.components
 import powercampus as pc
 
 
-@st.cache
+@st.cache_data
 def convert_df(df):
     return df.to_csv(index=False).encode('utf-8')
 
 
-@st.cache
+@st.cache_data
 def convert_df_xlsx(df_list):
     xl_buffer = io.BytesIO()
     with pd.ExcelWriter(
@@ -32,7 +32,7 @@ def convert_df_xlsx(df_list):
     return xl_buffer.getvalue()
 
 
-@st.cache
+@st.cache_data
 def course_df(start_year):
 
     academic = pc.select("ACADEMIC",

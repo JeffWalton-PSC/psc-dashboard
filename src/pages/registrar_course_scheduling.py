@@ -16,12 +16,12 @@ current_yt = current_yt_df['yearterm'].iloc[0]
 current_yt_sort = current_yt_df['yearterm_sort'].iloc[0]
 
 
-@st.cache
+@st.cache_data
 def convert_df(df):
     return df.to_csv(index=False).encode('utf-8')
 
 
-@st.cache
+@st.cache_data
 def convert_df_xlsx(df_list):
     xl_buffer = io.BytesIO()
     with pd.ExcelWriter(

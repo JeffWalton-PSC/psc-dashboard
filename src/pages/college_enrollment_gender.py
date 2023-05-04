@@ -6,7 +6,7 @@ from pathlib import Path
 import src.pages.components
 
 
-@st.cache
+@st.cache_data
 def convert_df(df):
     return df.to_csv().encode('utf-8')
 

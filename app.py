@@ -1,7 +1,8 @@
 """Main module for the streamlit app"""
 import sys
 import streamlit as st
-from streamlit import cli as stcli
+import streamlit.web.cli as stcli
+from streamlit import runtime
 
 import src.pages
 import src.pages.home
@@ -97,7 +98,7 @@ def main():
 
 
 if __name__ == '__main__':
-    if st._is_running_with_streamlit:
+    if runtime.exists():
         main()
     else:
         sys.argv = ["streamlit", "run", sys.argv[0]]

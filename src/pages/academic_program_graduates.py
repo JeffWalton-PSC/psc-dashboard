@@ -8,12 +8,12 @@ import src.pages.components
 # PowerCampus utilities
 import powercampus as pc
 
-@st.cache
+@st.cache_data
 def convert_df(df):
     return df.to_csv(index=False).encode('utf-8')
 
 
-@st.cache
+@st.cache_data
 def grads_df(begin_date:dt.datetime) -> pd.DataFrame:
 
     transcriptdegree = pc.select("TRANSCRIPTDEGREE",
