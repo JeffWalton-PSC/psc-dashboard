@@ -96,8 +96,8 @@ def write():
         # TOOLS="crosshair,pan,wheel_zoom,box_zoom,save,reset"
 
         p = figure(
-            plot_width=800,
-            plot_height=600,
+            width=800,
+            height=600,
             title=title,
             x_axis_label="Admissions Week Number (year starts Sept 1)",
             y_axis_label=stage,
