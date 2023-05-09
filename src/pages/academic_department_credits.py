@@ -325,7 +325,7 @@ def write():
             st.dataframe(df6_pivot)
             st.download_button(
                 label="Download data as CSV",
-                data=convert_df(df6_pivot),
+                data=convert_df(df6_pivot.reset_index()),
                 file_name=f"{year_start}-{year_end}_ay_department_student_credits.csv",
                 mime='text/csv',
             )
@@ -338,7 +338,7 @@ def write():
             st.dataframe(df6_pivot_pct)
             st.download_button(
                 label="Download data as CSV",
-                data=convert_df(df6_pivot_pct),
+                data=convert_df(df6_pivot_pct.reset_index()),
                 file_name=f"{year_start}-{year_end}_ay_department_student_credits_pct.csv",
                 mime='text/csv',
             )
