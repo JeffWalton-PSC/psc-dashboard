@@ -55,7 +55,7 @@ def write():
     df = pd.read_hdf(data_file, key="weekly")
     df = df[(df["year_term"] > start_term)]
 
-    summ = df.groupby(["year_term", "stage"]).sum()
+    summ = df.groupby(["year_term", "stage"]).sum(numeric_only=True)
     summ_t = summ.transpose()
 
     week_number, adm_week_number = adm_week(today)
@@ -111,7 +111,7 @@ def write():
         c = 1
         for t in terms:
             p.line(summ_t.index, summ_t[(t, stage)], color=Set1_9[c], legend_label=t)
-            if c <= 8:
+            if c <= 7:
                 c += 1
             else:
                 c = 1
