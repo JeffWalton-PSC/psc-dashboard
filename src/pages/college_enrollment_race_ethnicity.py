@@ -28,6 +28,7 @@ def write():
             pd.read_feather(data_file)
             .sort_values(['yearterm_sort', 'updated_ethnicity_code', 'people_code_id'])
         )
+        df.loc[df['updated_ethnicity_code']=='', 'updated_ethnicity_code']='U'
         df['updated_ethnicity_code'] = df['updated_ethnicity_code'].fillna('U')
 
         term_list = df['current_yearterm'].unique()

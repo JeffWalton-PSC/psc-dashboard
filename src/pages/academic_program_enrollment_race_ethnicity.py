@@ -32,7 +32,10 @@ def write():
             pd.read_feather(data_file)
             .sort_values(['yearterm_sort', 'curriculum', 'updated_ethnicity_code', 'people_code_id'])
         )
+        df.loc[df['curriculum']=='', 'curriculum']='UNDM'
         df['curriculum'] = df['curriculum'].fillna('UNDM')
+        df.loc[df['updated_ethnicity_code']=='', 'updated_ethnicity_code']='U'
+        df['updated_ethnicity_code'] = df['updated_ethnicity_code'].fillna('U')
 
         program_list = sorted(list(df['curriculum'].unique()))
         program = st.selectbox(
