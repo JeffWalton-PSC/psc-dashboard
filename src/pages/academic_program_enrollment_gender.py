@@ -32,6 +32,7 @@ def write():
             pd.read_feather(data_file)
             .sort_values(['yearterm_sort', 'curriculum', 'gender', 'people_code_id'])
         )
+        df.loc[df['curriculum']=='', 'curriculum']='UNDM'
         df['curriculum'] = df['curriculum'].fillna('UNDM')
 
         program_list = sorted(list(df['curriculum'].unique()))
