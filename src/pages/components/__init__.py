@@ -2,7 +2,7 @@ import streamlit as st
 
 def logo():
         st.write(
-        "[![Paul Smith's College](https://www.paulsmiths.edu/news/wp-content/themes/paulsmiths-divi-2019/images/logo.png)]"
+        "[![Paul Smith's College](static/PaulSmithsCollege-logo_ParentMark_FullColor.png)]"
         "(https://www.paulsmiths.edu)"
    )
 

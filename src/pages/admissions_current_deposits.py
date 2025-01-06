@@ -1,9 +1,7 @@
-import numpy as np
 import pandas as pd
 import streamlit as st
 import altair as alt
 import datetime as dt
-from pathlib import Path
 import src.pages.components
 
 # local connection information
