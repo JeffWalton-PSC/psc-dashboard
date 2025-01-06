@@ -18,7 +18,7 @@ def convert_df(df):
 def write():
     """Used to write the page in the app.py file"""
     with st.spinner("Loading Admissions - Current Deposits ..."):
-        src.pages.components.logo()
+        src.pages.components.page_header()
         st.write(
             """
             ## Admissions - Current Deposits

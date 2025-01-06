@@ -195,7 +195,7 @@ current_ay_label = current_yt_df['ay_label'].iloc[0]
 def write():
     """Used to write the page in the app.py file"""
     with st.spinner("Loading Faculty - Teaching ..."):
-        src.pages.components.logo()
+        src.pages.components.page_header()
         st.write(
             """
             ## Faculty - Teaching

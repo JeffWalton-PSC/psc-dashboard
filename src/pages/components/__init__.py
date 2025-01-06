@@ -1,8 +1,7 @@
 import streamlit as st
 
-def logo():
+def page_header():
         st.write(
-        "[![Paul Smith's College](static/PaulSmithsCollege-logo_ParentMark_FullColor.png)]"
-        "(https://www.paulsmiths.edu)"
+        "Paul Smith's College - IR Dashboard"
    )
 

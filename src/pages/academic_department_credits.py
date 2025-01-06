@@ -137,7 +137,7 @@ current_yt_sort = current_yt_df['yearterm_sort'].iloc[0]
 def write():
     """Used to write the page in the app.py file"""
     with st.spinner("Loading Academic Department - Credits ..."):
-        src.pages.components.logo()
+        src.pages.components.page_header()
         st.write(
             """
             ## Academic Department - Credits

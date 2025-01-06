@@ -42,7 +42,7 @@ def convert_df_xlsx(df_list):
 def write():
     """Used to write the page in the app.py file"""
     with st.spinner("Loading Registrar - Course Scheduling ..."):
-        src.pages.components.logo()
+        src.pages.components.page_header()
         st.write(
             """
             ## Registrar - Course Scheduling

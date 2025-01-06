@@ -98,7 +98,7 @@ def course_df(start_year):
 def write():
     """Used to write the page in the app.py file"""
     with st.spinner("Loading Program Review - Course Enrollment ..."):
-        src.pages.components.logo()
+        src.pages.components.page_header()
         st.write(
             """
             ## Program Review - Course Enrollment

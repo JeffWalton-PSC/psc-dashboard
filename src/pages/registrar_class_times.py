@@ -133,7 +133,7 @@ day_list = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN']
 def write():
     """Used to write the page in the app.py file"""
     with st.spinner("Loading Registrar - Class Times ..."):
-        src.pages.components.logo()
+        src.pages.components.page_header()
         st.write(
             """
             ## Registrar - Class Times

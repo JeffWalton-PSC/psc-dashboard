@@ -16,7 +16,7 @@ def convert_df(df):
 def write():
     """Used to write the page in the app.py file"""
     with st.spinner("Loading Academic Program Enrollment - Race/Ethnicity ..."):
-        src.pages.components.logo()
+        src.pages.components.page_header()
         st.write(
             """
             ## Academic Program Enrollment - Race/Ethnicity

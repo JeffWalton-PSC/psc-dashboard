@@ -38,7 +38,7 @@ def adm_week(d):
 def write():
     """Used to write the page in the app.py file"""
     with st.spinner("Loading Admissions - Historic Data By Stage ..."):
-        src.pages.components.logo()
+        src.pages.components.page_header()
         st.write(
             """
             ## Admissions - Historic Data By Stage
