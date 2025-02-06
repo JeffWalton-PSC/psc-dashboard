@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import streamlit as st
 import datetime as dt
+import io
 from pathlib import Path
 import src.pages.components
 from bokeh.plotting import figure
@@ -9,6 +10,29 @@ from bokeh.palettes import Set1_9
 
 
 start_term = "2014.Spring"
+
+@st.cache_data
+def convert_df(df):
+    return df.to_csv(index=False).encode('utf-8')
+
+
+@st.cache_data
+def convert_df_xlsx(df_list):
+    xl_buffer = io.BytesIO()
+    with pd.ExcelWriter(
+        xl_buffer,
+        date_format="YYYY-MM-DD",
+        datetime_format="YYYY-MM-DD HH:MM:SS"
+    ) as writer:
+        for d in df_list:
+            df = d[0]
+            sheet = d[1]
+            df.to_excel( writer,
+                sheet_name=sheet,
+                index=False
+                )
+    return xl_buffer.getvalue()
+
 
 def date_diff_weeks(start, end):
     """
@@ -130,3 +154,31 @@ def write():
         p.legend.location = "top_left"
 
         st.bokeh_chart(p, use_container_width=True)
+
+    st.markdown( "---" )
+
+    st.write( "Historic Admissions Data" )
+    
+    summ_with_index = summ.reset_index()
+    st.dataframe(summ_with_index)
+    st.download_button(
+        label="Download data as CSV",
+        data=convert_df(summ_with_index),
+        file_name=f"historic_admissions_data_{today_str}.csv",
+        mime='text/csv',
+    )
+
+    # df_to_add = [
+    #     [summ[(:,'Accepted')], 'applied'],
+    #     [summ[], 'admited'],
+    #     [summ[], 'deposited'],
+    # ]
+
+#     st.download_button(
+#     label=f"Download data as Excel workbook (.xlsx)",
+#     data=convert_df_xlsx(df_to_add),
+#     file_name=f"historic_admissions_data_{today_str}.xlsx",
+#     mime='application/vnd.ms-excel',
+# )
+
+

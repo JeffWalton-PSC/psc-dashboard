@@ -133,7 +133,7 @@ def write():
         st.markdown("---")
 
         program_deposits_total = (
-            df.groupby(['yearterm_sort', 'yearterm', ])
+            df[['yearterm_sort', 'yearterm', 'count']].groupby(['yearterm_sort', 'yearterm', ])
             .sum()
             .reset_index()
             .rename(columns={'count': 'deposits', })

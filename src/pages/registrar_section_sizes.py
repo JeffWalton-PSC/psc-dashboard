@@ -124,7 +124,7 @@ def write():
                                             bins=bins,
                                             labels=labels,
                                             )
-            ss = sections[['yearterm', 'section_id', 'size_bin']].groupby(['yearterm', 'size_bin']).count()
+            ss = sections[['yearterm', 'section_id', 'size_bin']].groupby(['yearterm', 'size_bin'], observed=False).count()
             ss = ( ss.reset_index()
                 .rename(
                     columns={
