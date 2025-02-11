@@ -6,6 +6,7 @@ from streamlit import runtime
 
 import src.pages
 import src.pages.home
+import src.pages.definitions
 import src.pages.academic_department_credits
 import src.pages.academic_department_enrollment
 import src.pages.academic_program_enrollment
@@ -33,6 +34,7 @@ import src.pages.about
 
 PAGES = {
     "Home": src.pages.home,
+    "Definitions": src.pages.definitions, 
     "Academic Department - Credits": src.pages.academic_department_credits, 
     "Academic Department - Enrollment": src.pages.academic_department_enrollment, 
     "Academic Program - Enrollment": src.pages.academic_program_enrollment, 
