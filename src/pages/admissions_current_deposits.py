@@ -108,7 +108,7 @@ def write():
             .count()
             .reset_index()
             .rename(columns={'PEOPLE_CODE_ID': 'count', 'CURRICULUM': 'program'})
-            .sort_values(['yearterm_sort', 'DEGREE', 'program'])
+            .sort_values(['program', 'DEGREE', 'yearterm_sort' ])
             .astype({'count': 'UInt16'})
         )
         yearterm_list = [ yt for yt in yearterm_list if (yt in df['yearterm'].unique())]
