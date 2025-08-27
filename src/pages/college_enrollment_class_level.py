@@ -41,10 +41,10 @@ def write():
         # order terms
         terms = [t for t in term_list if t in terms]
 
-        class_level_sort = ['FRES', 'SOPH', 'JUN', 'SEN', 'GRAD', ]
+        class_level_sort = ['none', 'FRES', 'SOPH', 'JUN', 'SEN', 'GRAD', ]
         class_level_sort_dict = {value: order for order, value in enumerate(class_level_sort)}
         # st.write(class_level_sort_dict)
-        class_level_sorter = lambda x: x.map(class_level_sort_dict).fillna(x)
+        class_level_sorter = lambda x: x.map(class_level_sort_dict)
 
         if terms:
             selected_df = (
@@ -57,6 +57,9 @@ def write():
                 .sort_values(['yearterm_sort', 'class_level'])
                 .astype({'count': 'UInt16'})
             )
+            selected_df['class_level'] = selected_df['class_level'].replace({'':'none'})
+            # st.write(selected_df['class_level'].unique())
+            # st.write(list(selected_df['class_level'].unique()))
 
             enrollment = pd.pivot(
                 selected_df,
@@ -65,6 +68,7 @@ def write():
                 columns=['yearterm'],
             )[terms]
             enrollment = enrollment.fillna(0)
+            # st.write(enrollment)
             enrollment = enrollment.sort_values('class_level', key=class_level_sorter)
 
             st.dataframe(enrollment)
@@ -72,7 +76,7 @@ def write():
             st.download_button(
                 label="Download data as CSV",
                 data=convert_df(enrollment),
-                file_name=f'college_enrollment_class_level.csv',
+                file_name='college_enrollment_class_level.csv',
                 mime='text/csv',
             )
 
@@ -82,7 +86,7 @@ def write():
 
             c1 = alt.Chart(selected_df).transform_joinaggregate(
                 total='sum(count)',
-                groupby=['yearterm']  
+                groupby=['yearterm',]  
             ).transform_calculate(
                 order=f"indexof({class_level_sort}, datum.class_level)"
                 ).mark_bar().encode(

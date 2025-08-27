@@ -52,6 +52,7 @@ def write():
         today = dt.datetime.today()
         today_str = today.strftime("%Y%m%d_%H%M")
         st.write(f"{today.strftime('%Y-%m-%d %H:%M')}")
+        # st.dataframe(current_yt_df)
 
         calendar = pc.select("ACADEMICCALENDAR",
             fields=['ACADEMIC_YEAR', 'ACADEMIC_TERM', 'ACADEMIC_SESSION', 
