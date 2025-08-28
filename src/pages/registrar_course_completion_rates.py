@@ -326,6 +326,76 @@ def write():
             st.altair_chart(c)
 
 
+            # # Get top 10 courses by highest dfw_rate in each term
+            # st.markdown("---")
+            # st.write(f"#### {year_start}-{year_end} Year.Term top 10 courses by highest DFW rate (for courses with at least 8 students)")
+            # top10_list = []
+            # for t in terms:
+            #     d = g.loc[(g['yearterm']==t)&(g['count']>=8), ['yearterm', 'course', 'count', 'dfw_rate', 'dfw_count', 'pass_rate', 'pass_count'] ]
+            #     d = d.sort_values(['dfw_rate', 'count'], ascending=[False, False]).head(10)
+            #     top10_list.append(d)
+            # top10 = pd.concat(top10_list, axis=0)
+            # top10 = top10.sort_values(['yearterm', 'dfw_rate', 'count'], ascending=[True, False, False])
+            # st.dataframe(top10)
+            # top10 = top10.reset_index(drop=True)
+            # st.download_button(
+            #     label="Download data as CSV",
+            #     data=convert_df(top10),
+            #     file_name=f"{year_start}-{year_end}_top10_course_dfw_rates_{today_str}.csv",
+            #     mime='text/csv',
+            # )
+
+
+            # # Get top 10 courses by lowest pass_rate in each term
+            # st.markdown("---")
+            # st.write(f"#### {year_start}-{year_end} Year.Term top 10 courses by lowest Pass rate (for courses with at least 8 students)")
+            # bottom10_list = []
+            # for t in terms:
+            #     d = g.loc[(g['yearterm']==t)&(g['count']>=8), ['yearterm', 'course', 'count', 'pass_rate', 'pass_count', 'dfw_rate', 'dfw_count'] ]
+            #     d = d.sort_values(['pass_rate', 'count'], ascending=[True, False]).head(10)
+            #     bottom10_list.append(d)
+            # bottom10 = pd.concat(bottom10_list, axis=0)
+            # bottom10 = bottom10.sort_values(['yearterm', 'pass_rate', 'count'], ascending=[True, True, False])
+            # st.dataframe(bottom10)
+            # bottom10 = bottom10.reset_index(drop=True)
+            # st.download_button(
+            #     label="Download data as CSV",
+            #     data=convert_df(bottom10),
+            #     file_name=f"{year_start}-{year_end}_bottom10_course_pass_rates_{today_str}.csv",
+            #     mime='text/csv',
+            # )
+
+
+            # # find course with lowest pass rate with at least 10 students over the entire period
+            # st.markdown("---")
+            # st.write(f"#### {year_start}-{year_end} Course with lowest pass rate (for courses with at least 10 students)")
+            # course_overall = ( atd[['course', 'student_course_id', 'pass', 'dfw']].groupby(['course' ]).agg(
+            #         {'student_course_id': 'count', 'pass': 'sum', 'dfw': 'sum' }
+            #     )
+            #     .rename(columns={'student_course_id': 'count', 'pass': 'pass_count', 'dfw': 'dfw_count' })
+            # )
+            # course_overall['pass_rate'] = course_overall['pass_count'] / course_overall['count']
+            # course_overall['dfw_rate'] = course_overall['dfw_count'] / course_overall['count']
+            # course_overall = course_overall.sort_values(['pass_rate', 'count'], ascending=[True, False])
+            # course_overall = course_overall.loc[(course_overall['count']>=10)&(course_overall['pass_count']>0)&(course_overall['dfw_count']>0), ]
+            # if not course_overall.empty:
+            #     lowest_pass_course = course_overall.iloc[0]
+            #     lowest_pass_course_name = lowest_pass_course.name
+            #     lowest_pass_rate = lowest_pass_course['pass_rate']
+            #     lowest_pass_count = lowest_pass_course['pass_count']
+            #     lowest_total_count = lowest_pass_course['count']
+            #     st.write(f"The course with the lowest pass rate from {year_start} to {year_end} is **{lowest_pass_course_name}** with a pass rate of **{lowest_pass_rate:.1%}** " +
+            #         f"({lowest_pass_count} passes out of {lowest_total_count} students).")
+            # else:
+            #     st.write("No courses with at least 10 students found.")
+            # course_overall = course_overall.reset_index()
+            # st.download_button(
+            #     label="Download data as CSV",
+            #     data=convert_df(course_overall),
+            #     file_name=f"{year_start}-{year_end}_course_overall_pass_rates_{today_str}.csv",
+            #     mime='text/csv',
+            # )
+
             # Export to Excel
             st.markdown("---")
             st.write(f"#### {year_start}-{year_end} Excel workbook with all course completion rate tables")
