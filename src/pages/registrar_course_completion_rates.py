@@ -1,3 +1,4 @@
+import altair as alt
 import pandas as pd
 import streamlit as st
 import datetime as dt
@@ -107,15 +108,16 @@ def write():
             atd = pc.add_col_yearterm_sort(atd)
             atd["EVENT_ID"] = atd["EVENT_ID"].str.rstrip().str.upper()
             atd['course_section_id'] = (
-                atd["EVENT_ID"].str.rstrip().str.upper() + "." + 
-                atd["EVENT_SUB_TYPE"].str.upper() + "."  + 
                 atd["ACADEMIC_YEAR"] + "."  + 
                 atd["ACADEMIC_TERM"].str.title()  + "."  + 
+                atd["EVENT_ID"].str.rstrip().str.upper() + "." + 
+                atd["EVENT_SUB_TYPE"].str.upper() + "."  + 
                 atd["SECTION"].str.upper()
                 )
+            atd['student_course_id'] = atd['PEOPLE_CODE_ID'] + "." + atd['course_section_id']
             atd = atd.rename(columns={'EVENT_ID': 'course', }) 
             keep_cols = [
-                'PEOPLE_CODE_ID', 'yearterm', 'course', 'course_section_id', 'FINAL_GRADE',
+                'PEOPLE_CODE_ID', 'yearterm', 'yearterm_sort', 'course', 'course_section_id', 'student_course_id', 'FINAL_GRADE',
             ]
             atd = atd.loc[~atd['FINAL_GRADE'].isin(['TR', 'AU']), keep_cols]
 
@@ -160,16 +162,23 @@ def write():
                 right_on='pc_grade'
                 )
             
+            term_df = ( atd.drop_duplicates(['yearterm_sort', 'yearterm'])
+                .sort_values(['yearterm_sort'], ascending=True)
+                .loc[:,['yearterm_sort', 'yearterm']]
+                )
+            terms = term_df['yearterm'].unique()
+
 
             st.write(f"#### Course Completion Rates by Year.Term ({year_start}-{year_end})")
 
-            g = ( atd[['yearterm', 'course', 'PEOPLE_CODE_ID', 'pass', 'dfw']].groupby(['yearterm', 'course', ]).agg(
-                    {'PEOPLE_CODE_ID': 'count', 'pass': 'sum', 'dfw': 'sum' }
+            g = ( atd[['yearterm', 'yearterm_sort', 'course', 'PEOPLE_CODE_ID', 'pass', 'dfw']].groupby(['yearterm', 'course', ]).agg(
+                    {'yearterm_sort': 'first', 'PEOPLE_CODE_ID': 'count', 'pass': 'sum', 'dfw': 'sum' }
                 )
                 .rename(columns={'PEOPLE_CODE_ID': 'count', 'pass': 'pass_count', 'dfw': 'dfw_count' })
             )
             g['pass_rate'] = g['pass_count'] / g['count']
             g['dfw_rate'] = g['dfw_count'] / g['count']
+            g = g.sort_values(['yearterm_sort', 'course'], ascending=True).drop(columns=['yearterm_sort', ])
             st.dataframe(g)
             g = g.reset_index()
             st.download_button(
@@ -188,6 +197,7 @@ def write():
                     values='pass_rate'
                     )
             )
+            pass_rate = pass_rate.loc[:,terms]
             st.dataframe(pass_rate)
             pass_rate = pass_rate.reset_index()
             st.download_button(
@@ -206,6 +216,7 @@ def write():
                     values='dfw_rate'
                     )
             )
+            dfw_rate = dfw_rate.loc[:,terms]
             st.dataframe(dfw_rate)
             dfw_rate = dfw_rate.reset_index()
             st.download_button(
@@ -216,6 +227,105 @@ def write():
             )
 
 
+            # Overall Pass/DFW rates
+            st.markdown("---")
+            st.write(f"#### {year_start}-{year_end} Year.Term overall (for all courses) course completion rate tables")
+
+            overall = ( atd[['yearterm', 'yearterm_sort', 'student_course_id', 'pass', 'dfw']].groupby(['yearterm' ]).agg(
+                    {'yearterm_sort': 'first', 'student_course_id': 'count', 'pass': 'sum', 'dfw': 'sum' }
+                )
+                .rename(columns={'student_course_id': 'count', 'pass': 'pass_count', 'dfw': 'dfw_count' })
+            )
+            overall['pass_rate'] = overall['pass_count'] / overall['count']
+            overall['dfw_rate'] = overall['dfw_count'] / overall['count']
+            overall = overall.sort_values(['yearterm_sort'], ascending=True).drop(columns=['yearterm_sort', ])
+            overall = overall.loc[(overall['pass_count']!=0)&(overall['dfw_count']!=0), ]
+            st.dataframe(overall)
+            overall = overall.reset_index()
+            st.download_button(
+                label="Download data as CSV",
+                data=convert_df(overall),
+                file_name=f"{year_start}-{year_end}_overall_course_completion_rates_{today_str}.csv",
+                mime='text/csv',
+            )
+            st.write(" ")
+            c = alt.Chart(overall, title=alt.TitleParams(
+                    text='Overall Course Pass Rates',
+                    subtitle=f'{year_start}-{year_end}',
+                    )).mark_line().encode(
+                        x=alt.X('yearterm:N', sort=terms, axis=alt.Axis(title='Year.Term'), ),
+                        y=alt.Y('pass_rate:Q', axis=alt.Axis(title='Pass Rate', format='.0%'), scale=alt.Scale(zero=False)),
+                        tooltip=['yearterm', alt.Tooltip('pass_rate:Q', title='pass_rate', format='.2%')],
+                    )
+            max_pass_rate = overall['pass_rate'].max()
+            c = c + alt.Chart(pd.DataFrame({'y_max': [max_pass_rate]})).mark_rule(strokeDash=[5,5], color='red').encode(y='y_max')
+            max_pass_rate_yearterm = overall.loc[overall['pass_rate']==max_pass_rate, 'yearterm'].iloc[0]
+            c = c + alt.Chart(pd.DataFrame({'y_max': [max_pass_rate], 'x_max': [max_pass_rate_yearterm]})).mark_text(
+                align='left',
+                baseline='bottom',
+                dx=3,
+                dy=-3,
+                color='red',
+                ).encode(
+                    y='y_max:Q',
+                    x='x_max:N',
+                    text=alt.value(f'Highest pass rate: {max_pass_rate:.1%} in {max_pass_rate_yearterm}'),
+                )
+            min_pass_rate = overall['pass_rate'].min()
+            c = c + alt.Chart(pd.DataFrame({'y_min': [min_pass_rate]})).mark_rule(strokeDash=[5,5], color='blue').encode(y='y_min')
+            min_pass_rate_yearterm = overall.loc[overall['pass_rate']==min_pass_rate, 'yearterm'].iloc[0]
+            c = c + alt.Chart(pd.DataFrame({'y_min': [min_pass_rate], 'x_min': [min_pass_rate_yearterm]})).mark_text(
+                align='left',
+                baseline='top',
+                dx=3,
+                dy=3,
+                color='blue',
+                ).encode(
+                    y='y_min:Q',
+                    x='x_min:N',
+                    text=alt.value(f'Lowest pass rate: {min_pass_rate:.1%} in {min_pass_rate_yearterm}'),
+                )
+            st.altair_chart(c)
+            st.write(" ")
+            c = alt.Chart(overall, title=alt.TitleParams(
+                    text='Overall Course DFW Rates',
+                    subtitle=f'{year_start}-{year_end}',
+                    )).mark_line().encode(
+                        x=alt.X('yearterm:N', sort=terms, axis=alt.Axis(title='Year.Term'), ),
+                        y=alt.Y('dfw_rate:Q', axis=alt.Axis(title='DFW Rate', format='.0%'), scale=alt.Scale(zero=False)),
+                        tooltip=['yearterm', alt.Tooltip('dfw_rate:Q', title='DFW_rate', format='.2%')],
+                    )
+            max_dfw_rate = overall['dfw_rate'].max()
+            c = c + alt.Chart(pd.DataFrame({'y_max': [max_dfw_rate]})).mark_rule(strokeDash=[5,5], color='red').encode(y='y_max')
+            max_dfw_rate_yearterm = overall.loc[overall['dfw_rate']==max_dfw_rate, 'yearterm'].iloc[0]
+            c = c + alt.Chart(pd.DataFrame({'y_max': [max_dfw_rate], 'x_max': [max_dfw_rate_yearterm]})).mark_text(
+                align='left',
+                baseline='bottom',
+                dx=3,
+                dy=-3,
+                color='red',
+                ).encode(
+                    y='y_max:Q',
+                    x='x_max:N',
+                    text=alt.value(f'Highest DFW rate: {max_dfw_rate:.1%} in {max_dfw_rate_yearterm}'),
+                )
+            min_dfw_rate = overall['dfw_rate'].min()
+            c = c + alt.Chart(pd.DataFrame({'y_min': [min_dfw_rate]})).mark_rule(strokeDash=[5,5], color='blue').encode(y='y_min')
+            min_dfw_rate_yearterm = overall.loc[overall['dfw_rate']==min_dfw_rate, 'yearterm'].iloc[0]
+            c = c + alt.Chart(pd.DataFrame({'y_min': [min_dfw_rate], 'x_min': [min_dfw_rate_yearterm]})).mark_text(
+                align='left',
+                baseline='top',
+                dx=3,
+                dy=3,
+                color='blue',
+                ).encode(
+                    y='y_min:Q',
+                    x='x_min:N',
+                    text=alt.value(f'Lowest DFW rate: {min_dfw_rate:.1%} in {min_dfw_rate_yearterm}'),
+                )
+            st.altair_chart(c)
+
+
             # Export to Excel
             st.markdown("---")
             st.write(f"#### {year_start}-{year_end} Excel workbook with all course completion rate tables")
@@ -224,11 +334,13 @@ def write():
                     [pass_rate, 'pass_rate'],
                     [dfw_rate, 'dfw_rate'],
                     [g, 'all data'],
+                    [overall, 'overall'],
             ]
-
             st.download_button(
                 label=f"Download Excel workbook for {year_start}-{year_end} as .xlsx",
                 data=convert_df_xlsx(df_to_add),
                 file_name=f"{year_start}-{year_end}_course_completion_rates_{today_str}.xlsx",
                 mime='application/vnd.ms-excel',
             )
+
+
