@@ -378,7 +378,7 @@ def write():
 
             # find course with lowest pass rate with at least 10 students over the entire period
             st.markdown("---")
-            st.write(f"#### Course with lowest pass rate (for courses with at least 10 students) for the period {year_start}-{year_end}")
+            st.write(f"#### Lowest pass rate (for courses with at least 10 students) for the period {year_start}-{year_end}")
             course_overall = ( atd[['course', 'student_course_id', 'pass', 'dfw']].groupby(['course' ]).agg(
                     {'student_course_id': 'count', 'pass': 'sum', 'dfw': 'sum' }
                 )
