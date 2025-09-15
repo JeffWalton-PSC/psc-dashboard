@@ -6,10 +6,10 @@ import io
 from pathlib import Path
 import src.pages.components
 from bokeh.plotting import figure
-from bokeh.palettes import Set1_9
+from bokeh.palettes import Set1_9, Colorblind8
 
 
-start_term = "2014.Spring"
+start_term = "2017.Spring"
 
 @st.cache_data
 def convert_df(df):
@@ -132,13 +132,13 @@ def write():
 
         p.line(summ_t.index, summ_t[(term, stage)], color="red", line_width=2, legend_label=term)
 
-        c = 1
+        c = 0 # set to 1 to skip red for certain color pallettes like Set1_9
         for t in terms:
-            p.line(summ_t.index, summ_t[(t, stage)], color=Set1_9[c], legend_label=t)
+            p.line(summ_t.index, summ_t[(t, stage)], color=Colorblind8[c], legend_label=t)
             if c <= 7:
                 c += 1
             else:
-                c = 1
+                c = 0 # set to 1 to skip red for certain color pallettes
 
         # week_number line
         p.line(
