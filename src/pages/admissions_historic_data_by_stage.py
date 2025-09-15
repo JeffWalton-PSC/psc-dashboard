@@ -128,13 +128,17 @@ def write():
             tools=TOOLS,
             x_range=(0, 54),
             y_range=(0, y_max * 1.05),
+            background_fill_color="white",
+            background_fill_alpha=0.7,  
         )
+        # p.xaxis.major_grids.grid_line_color="lightgray",
+        # p.yaxis.major_grids.grid_line_color="lightgray",
 
-        p.line(summ_t.index, summ_t[(term, stage)], color="red", line_width=2, legend_label=term)
+        p.line(summ_t.index, summ_t[(term, stage)], color="red", line_width=3.5, legend_label=term)
 
         c = 0 # set to 1 to skip red for certain color pallettes like Set1_9
         for t in terms:
-            p.line(summ_t.index, summ_t[(t, stage)], color=Colorblind8[c], legend_label=t)
+            p.line(summ_t.index, summ_t[(t, stage)], color=Colorblind8[c], line_width=1.5, legend_label=t)
             if c <= 7:
                 c += 1
             else:
