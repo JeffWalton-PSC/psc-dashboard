@@ -29,6 +29,7 @@ import src.pages.program_review_course_enrollment
 import src.pages.registrar_class_times
 import src.pages.registrar_course_completion_rates
 import src.pages.registrar_course_scheduling
+import src.pages.registrar_gpa_distribution
 import src.pages.registrar_grade_distribution
 import src.pages.registrar_section_sizes
 import src.pages.about
@@ -58,6 +59,7 @@ PAGES = {
     "Registrar - Class Times": src.pages.registrar_class_times,
     "Registrar - Course Completion Rates": src.pages.registrar_course_completion_rates,
     "Registrar - Course Scheduling": src.pages.registrar_course_scheduling,
+    "Registrar - GPA Distribution": src.pages.registrar_gpa_distribution,
     "Registrar - Grade Distribution": src.pages.registrar_grade_distribution,
     "Registrar - Section Sizes": src.pages.registrar_section_sizes,
     "About": src.pages.about,
