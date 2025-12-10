@@ -155,13 +155,6 @@ def write():
             atgpa['gpa_bin'] = atgpa['gpa_bin'].dropna().astype(str)
             # st.write(atgpa.shape)
             # st.dataframe(atgpa)
-            # st.write(atgpa.dtypes)
-            # st.download_button(
-            #     label="Download data as CSV",
-            #     data=convert_df(atgpa),
-            #     file_name=f"{term}_{year_start}-{year_end}_gpa_bins.csv",
-            #     mime='text/csv',
-            # )
 
             gpab = atgpa[['PEOPLE_CODE_ID', 'yearterm', 'gpa_bin']].groupby(['yearterm', 'gpa_bin'], observed=False).count()
             gpab = ( gpab.reset_index()
@@ -190,15 +183,17 @@ def write():
 
             st.write("##### GPA Bins - Percentages")
             # calculate percentage of each gpa bin within each yearterm
-            gpa_yt_bin = atgpa.groupby(['yearterm', 'gpa_bin']).agg({'PEOPLE_CODE_ID':'count'}).rename(columns={'PEOPLE_CODE_ID':'count'})
-            # st.write(gpa_yt_bin)
-            gpa_yt_bin_pcts = gpa_yt_bin.groupby(level=0).apply(lambda x: 100 * x / float(x.sum())).rename(columns={'count':'pct'})
-            st.dataframe(gpa_yt_bin_pcts)
+            gpa_yt_bin = atgpa.groupby(['yearterm', 'gpa_bin'], group_keys=False).agg({'PEOPLE_CODE_ID':'count'}).rename(columns={'PEOPLE_CODE_ID':'count'})
+            # st.dataframe(gpa_yt_bin)
+            gpa_yt_bin_pcts = gpa_yt_bin.groupby(level=0, group_keys=False).apply(lambda x: 100 * x / float(x.sum())).rename(columns={'count':'pct'})
+            gpa_yt_bin_pcts = gpa_yt_bin_pcts.reset_index()
+            # st.dataframe(gpa_yt_bin_pcts)
             gpabp = gpa_yt_bin_pcts.pivot(
-                index='yearterm', 
-                columns='gpa_bin',
-                values='count'
-            )
+                         index='yearterm', 
+                         columns='gpa_bin',
+                         values='pct'
+                         )
+            st.dataframe(gpabp.style.format('{:.1f}'))
             st.download_button(
                 label="Download data as CSV",
                 data=convert_df(gpabp),
@@ -206,16 +201,7 @@ def write():
                 mime='text/csv',
             )
 
-
-            # c = alt.Chart(ss).mark_bar().encode(
-            #     x='yearterm:N',
-            #     y=alt.Y('sum(count):Q', axis=alt.Axis(title='number of sections')),
-            #     color='yearterm:N',
-            #     column=alt.Column(shorthand='size_bin:N',sort=labels),
-            #     tooltip=['size_bin', 'yearterm', alt.Tooltip('sum(count):Q', title='sections')],
-            # )
-            # st.altair_chart(c)
-
+            st.write("##### GPA Bins - Visualization")
             c1 = alt.Chart(gpab).transform_joinaggregate(
                     YearTermCount='sum(count)',
                     groupby=['yearterm']
