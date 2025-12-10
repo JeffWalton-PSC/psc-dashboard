@@ -109,6 +109,7 @@ def write():
             # st.write(atgpa.shape)
             # st.dataframe(atgpa)
 
+            st.write("___")
             st.write(f"#### GPA Statistics ({term} {year_start}-{year_end})")
             agg_ytgpa = ( atgpa[['yearterm', 'GPA']].groupby(['yearterm']).agg(
                     {'GPA': ['count', 'min', 'median', 'mean', 'max']}
@@ -145,6 +146,7 @@ def write():
             )
             st.altair_chart(c)
 
+            st.write("___")
             st.write(f"#### GPA Bins ({term} {year_start}-{year_end})")
             bins=[-0.1, 1, 2, 2.5, 3.0, 3.5, 4.0]
             labels=['0.0-1.0', '1.0-2.0', '2.0-2.5', '2.5-3.0', '3.0-3.5', '3.5-4.0']
@@ -175,9 +177,10 @@ def write():
             gpabc['Total'] = gpabc[labels].sum(axis=1)
             st.dataframe(gpabc)
             st.download_button(
+                key='GPA Bins - Counts',
                 label="Download data as CSV",
                 data=gpabc.to_csv(index=True).encode('utf-8'),
-                file_name=f"{term}_{year_start}-{year_end}_gpa_bins_count.csv",
+                file_name=f"{term}_{year_start}-{year_end}_gpa_yt_bins_count.csv",
                 mime='text/csv',
             )
 
@@ -195,8 +198,9 @@ def write():
                          )
             st.dataframe(gpabp.style.format('{:.1f}'))
             st.download_button(
+                key='GPA Bins - Percentages',
                 label="Download data as CSV",
-                data=convert_df(gpabp),
+                data=gpabp.to_csv(index=True).encode('utf-8'),
                 file_name=f"{term}_{year_start}-{year_end}_gpa_yt_bins_pct.csv",
                 mime='text/csv',
             )
@@ -215,4 +219,77 @@ def write():
                 tooltip=['gpa_bin', 'yearterm', alt.Tooltip('sum(count):Q', title='GPAs'), alt.Tooltip('PercentOfTotal:Q', title='pct of yearterm', format='.3p')],
             )
             st.altair_chart(c1)
+
+            st.write("___")
+            st.write(f"#### GPA Above 2.0 ({term} {year_start}-{year_end})")
+            gpa_gt2 = atgpa.copy()
+            bins=[-0.1, 2, 4.0]
+            labels=['Below 2.0', '2.0 or Above', ]
+            gpa_gt2['gpa_bin2'] = pd.cut(atgpa['GPA'], 
+                                            bins=bins,
+                                            labels=labels,
+                                            )
+            gpa_gt2['gpa_bin2'] = gpa_gt2['gpa_bin2'].dropna().astype(str)
+
+            gpab2 = gpa_gt2[['PEOPLE_CODE_ID', 'yearterm', 'gpa_bin2']].groupby(['yearterm', 'gpa_bin2'], observed=False).count()
+            gpab2 = ( gpab2.reset_index()
+                .rename(
+                    columns={
+                        'PEOPLE_CODE_ID': 'count'
+                    },
+                )
+            )
+            # st.dataframe(gpab2)
+
+            st.write("##### GPA Above 2.0 - Counts")
+            gpabc2 = gpab2.pivot(
+                index='yearterm', 
+                columns='gpa_bin2',
+                values='count'
+            )
+            gpabc2['Total'] = gpabc2[labels].sum(axis=1)
+            st.dataframe(gpabc2)
+            st.download_button(
+                key='GPA Above 2.0 - Counts',
+                label="Download data as CSV",
+                data=gpabc2.to_csv(index=True).encode('utf-8'),
+                file_name=f"{term}_{year_start}-{year_end}_gpa_yt_gt2_bins_count.csv",
+                mime='text/csv',
+            )
+
+            st.write("##### GPA Above 2.0 - Percentages")
+            # calculate percentage of each gpa bin within each yearterm
+            gpa_yt_bin2 = gpa_gt2.groupby(['yearterm', 'gpa_bin2'], group_keys=False).agg({'PEOPLE_CODE_ID':'count'}).rename(columns={'PEOPLE_CODE_ID':'count'})
+            # st.dataframe(gpa_yt_bin2)
+            gpa_yt_bin_pcts2 = gpa_yt_bin2.groupby(level=0, group_keys=False).apply(lambda x: 100 * x / float(x.sum())).rename(columns={'count':'pct'})
+            gpa_yt_bin_pcts2 = gpa_yt_bin_pcts2.reset_index()
+            # st.dataframe(gpa_yt_bin_pcts2)
+            gpabp2 = gpa_yt_bin_pcts2.pivot(
+                         index='yearterm', 
+                         columns='gpa_bin2',
+                         values='pct'
+                         )
+            st.dataframe(gpabp2.style.format('{:.1f}'))
+            st.download_button(
+                key='GPA Above 2.0 - Percentages',
+                label="Download data as CSV",
+                data=gpabp2.to_csv(index=True).encode('utf-8'),
+                file_name=f"{term}_{year_start}-{year_end}_gpa_yt_gt2_bins_pct.csv",
+                mime='text/csv',
+            )
+
+            st.write("##### GPA Above 2.0 - Visualization")
+            c2 = alt.Chart(gpab2).transform_joinaggregate(
+                    YearTermCount='sum(count)',
+                    groupby=['yearterm']
+                ).transform_calculate(
+                    PercentOfTotal="datum.count / datum.YearTermCount",
+                ).mark_bar().encode(
+                x='yearterm:N',
+                y=alt.Y('PercentOfTotal:Q', axis=alt.Axis(title='percent of yearterm GPAs', format='.0%')),
+                color='yearterm:N',
+                column=alt.Column(shorthand='gpa_bin2:N',sort=labels),
+                tooltip=['gpa_bin2', 'yearterm', alt.Tooltip('sum(count):Q', title='GPAs'), alt.Tooltip('PercentOfTotal:Q', title='pct of yearterm', format='.3p')],
+            )
+            st.altair_chart(c2)
 
