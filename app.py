@@ -15,6 +15,7 @@ import src.pages.academic_program_enrollment_race_ethnicity
 import src.pages.academic_program_graduates
 import src.pages.admissions_current_deposits
 import src.pages.admissions_historic_data_by_stage
+import src.pages.cacs_gpa_trend_analysis
 import src.pages.college_enrollment_total
 import src.pages.college_enrollment_historic
 import src.pages.college_enrollment_attrition
@@ -45,6 +46,7 @@ PAGES = {
     "Academic Program - Graduates": src.pages.academic_program_graduates,
     "Admissions - Current Deposits": src.pages.admissions_current_deposits,
     "Admissions - Historic Data By Stage": src.pages.admissions_historic_data_by_stage,
+    "CACS - GPA Trend Analysis": src.pages.cacs_gpa_trend_analysis,
     "College Enrollment - Total": src.pages.college_enrollment_total,
     "College Enrollment - Historic": src.pages.college_enrollment_historic,
     "College Enrollment - Attrition": src.pages.college_enrollment_attrition,
