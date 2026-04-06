@@ -8,8 +8,29 @@ import src.pages.components
 from bokeh.plotting import figure
 from bokeh.palettes import Set1_9, Colorblind8
 
+# PowerCampus utilities
+import powercampus as pc
 
-start_term = "2017.Spring"
+start_term = "2018.Spring"
+
+current_yt_df = pc.current_yearterm()
+current_term = current_yt_df['term'].iloc[0]
+current_year = current_yt_df['year'].iloc[0]
+current_yt = current_yt_df['yearterm'].iloc[0]
+current_yt_sort = current_yt_df['yearterm_sort'].iloc[0]
+
+def next_fall_yearterm(yearterm):
+    """
+    returns the next Fall yearterm in the sequence of yearterms
+    """
+    if "Spring" in yearterm:
+        return yearterm.replace("Spring", "Fall")
+    elif "Summer" in yearterm:
+        return yearterm.replace("Summer", "Fall")
+    elif "Fall" in yearterm:
+        return yearterm.replace("Fall", "Spring").replace(str(int(yearterm[:4])), str(int(yearterm[:4]) + 1))
+    else:
+        raise ValueError(f"Invalid yearterm: {yearterm}")
 
 @st.cache_data
 def convert_df(df):
@@ -90,7 +111,9 @@ def write():
 
     all_terms = sorted(list(df["year_term"].dropna().unique()), reverse=True)
     all_terms = [l for l in all_terms if "Fall" in l]
-    term = st.selectbox(label="Selected primary term:", options=all_terms, index=0)
+    # st.write(f"{all_terms=}")
+    next_fall = next_fall_yearterm(current_yt)
+    term = st.selectbox(label="Selected primary term:", options=all_terms, index=all_terms.index(next_fall) if next_fall in all_terms else 0)
 
     terms_opt = all_terms.copy()
     terms_opt.remove(term)
